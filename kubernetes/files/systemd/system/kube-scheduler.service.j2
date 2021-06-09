@@ -1,0 +1,28 @@
+{% from "kubernetes/map.jinja" import kubernetes with context %}
+
+{% set component = 'kube-scheduler' %}
+{% set component_bin_path = kubernetes.install_dir + '/scheduler' %}
+
+{% from "kubernetes/vars.jinja" import
+    kubernetes_scheme, kubernetes_apiserver_port,
+    kubernetes_etc_dir
+with context %}
+
+[Unit]
+Description=Kubernetes Scheduler
+Documentation=https://github.com/kubernetes/kubernetes
+After=kube-apiserver.service
+
+[Service]
+User=root
+ExecStart={{ component_bin_path }} \
+{%- if kubernetes.k8s.use_ssl %}
+    --kubeconfig={{ kubernetes_etc_dir }}/scheduler.kubeconfig \
+{%- endif %}
+    --master={{ kubernetes_scheme }}://127.0.0.1:{{ kubernetes_apiserver_port }} \
+    --logtostderr=true
+Restart=on-failure
+LimitNOFILE=65536
+
+[Install]
+WantedBy=multi-user.target

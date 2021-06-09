@@ -1,0 +1,8 @@
+{% from "kubernetes/map.jinja" import kubernetes with context -%}
+{%- set cluster_dns = kubernetes.k8s.cluster_dns %}
+{%- set dns_search = cluster_dns.search if cluster_dns.search is not none else {} %}
+domain {{ cluster_dns.domain }}
+search{% for domain in dns_search %} {{ domain }}.{% endfor %} {{ cluster_dns.domain }}.
+{% for nameserver in cluster_nameservers -%}
+nameserver {{ nameserver }}
+{% endfor %}

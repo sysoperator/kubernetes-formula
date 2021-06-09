@@ -1,0 +1,83 @@
+{% from "kubernetes/map.jinja" import kubernetes with context %}
+
+{% set component = 'kubelet' %}
+{% set component_bin_path = kubernetes.install_dir + '/kubelet' %}
+
+{% from "kubernetes/vars.jinja" import
+    cluster_nameservers, cluster_domain,
+    node_role, node_ip4,
+    kubernetes_scheme, kubernetes_apiserver_port,
+    kubernetes_etc_dir, kubernetes_ssl_dir,
+    kubernetes_ca_cert_path,
+    component_ssl_cert_path, component_ssl_key_path
+with context %}
+
+[Unit]
+Description=Kubernetes Kubelet
+Documentation=https://github.com/kubernetes/kubernetes
+{%- if node_role == 'master' %}
+After=kube-apiserver.service kube-proxy.service
+{% else %}
+After=flannel.service haproxy.service kube-proxy.service
+{% endif %}
+
+[Service]
+User=root
+ExecStart={{ component_bin_path }} \
+{%- if kubernetes.k8s.log_debug %}
+    --v=2 \
+{%- endif %}
+{%- if ('allow_privileged' in kubernetes.k8s.security) and (salt['pkg.version_cmp'](kubernetes.source_version, 'v1.15.0') < 0) %}
+    --allow-privileged=true \
+{%- endif %}
+{%- if kubernetes.k8s.use_ssl %}
+    --anonymous-auth=false \
+{%- if salt['pkg.version_cmp'](kubernetes.source_version, 'v1.13.0') >= 0 %}
+    --authorization-mode=Webhook \
+    --authentication-token-webhook=true \
+{%- endif %}
+    --cert-dir={{ kubernetes_ssl_dir }} \
+    --tls-cert-file={{ component_ssl_cert_path }} \
+    --tls-private-key-file={{ component_ssl_key_path }} \
+    --client-ca-file={{ kubernetes_ca_cert_path }} \
+{%- endif %}
+    --chaos-chance=0.0 \
+    --container-runtime=docker \
+{%- if node_role == 'master' %}
+  {%- if salt['pkg.version_cmp'](kubernetes.source_version, 'v1.8.0') >= 0 %}
+    --node-labels="type=controller{% if salt['pkg.version_cmp'](kubernetes.source_version, 'v1.16.0') < 0 %},node-role.kubernetes.io/master={% endif %}" \
+    --register-with-taints=node-role.kubernetes.io/master=:NoSchedule \
+  {%- else %}
+    --register-schedulable=false \
+  {%- endif %}
+{%- endif %}
+{%- if (salt['pkg.version_cmp'](kubernetes.source_version, 'v1.12.0') >= 0) and (salt['pkg.version_cmp'](kubernetes.source_version, 'v1.14.0') < 0) %}
+    --feature-gates=NodeLease=false \
+{%- endif %}
+{%- if node_role == 'node' %}
+    --enable-controller-attach-detach=false \
+{%- endif %}
+    --node-ip={{ node_ip4 }} \
+    --address={{ node_ip4 }} \
+    --port=10250 \
+{#-
+  Issue:  https://github.com/kubernetes/kubernetes/issues/90259
+  Commit: https://github.com/kubernetes/kubernetes/commit/8bed088224fb38b41255b37e59a1701caefa171b
+#}
+    --make-iptables-util-chains=false \
+    --cpu-cfs-quota=false \
+{%- if salt['pkg.version_cmp'](kubernetes.source_version, 'v1.8.0') >= 0 %}
+    --kubeconfig={{ kubernetes_etc_dir }}/kubelet.kubeconfig \
+    --cloud-provider="" \
+{%- else %}
+    --api-servers={{ kubernetes_scheme }}://127.0.0.1:{{ kubernetes_apiserver_port }} \
+{%- endif %}
+    --cluster-dns={{ cluster_nameservers|join(',') }} \
+    --cluster-domain={{ cluster_domain }} \
+    --logtostderr=true
+Restart=on-failure
+LimitNOFILE=65536
+
+[Install]
+WantedBy=multi-user.target
+Alias=kube-kubelet.service

@@ -1,0 +1,108 @@
+{% from "kubernetes/map.jinja" import kubernetes with context %}
+{% from "etcd/map.jinja" import etcd with context %}
+
+{% from "etcd/vars.jinja" import
+    etcd_ca_cert_path,
+    etcd_ssl_cert_path, etcd_ssl_key_path
+with context %}
+
+{% set component = 'kube-apiserver' %}
+{% set component_bin_path = kubernetes.install_dir + '/apiserver' %}
+
+{% from "kubernetes/vars.jinja" import
+    node_ip4,
+    kubernetes_scheme, kubernetes_apiserver_port,
+    kubernetes_networks, kubernetes_runtime_config, kubernetes_admission_controllers,
+    kubernetes_etc_dir, kubernetes_ssl_dir,
+    kubernetes_ca_cert_path, kubernetes_ca_key_path,
+    kubernetes_sa_path, kubernetes_sa_pub_path,
+    kubelet_client_ssl_cert_path, kubelet_client_ssl_key_path,
+    component_ssl_cert_path, component_ssl_key_path
+with context %}
+
+[Unit]
+Description=Kubernetes API Server
+Documentation=https://github.com/kubernetes/kubernetes
+After=network.target etcd.service flannel.service
+
+[Service]
+User=root
+ExecStart={{ component_bin_path }} \
+{%- if kubernetes.k8s.log_debug %}
+    --v=2 \
+{%- endif %}
+{%- if kubernetes.k8s.apiserver.log_debug_rbac %}
+    --vmodule=rbac*=5 \
+{%- endif %}
+{%- if 'allow_privileged' in kubernetes.k8s.security %}
+    --allow-privileged=true \
+{%- endif %}
+    --advertise-address={{ node_ip4 }} \
+    --apiserver-count={{ etcd.endpoints|length }} \
+    --authorization-mode={% for mode in kubernetes.k8s.authorization_mode -%}
+        {{ mode }}{% if not loop.last %},{% endif %}
+{%- endfor %} \
+    --service-account-{% if salt['pkg.version_cmp'](kubernetes.source_version, 'v1.20.0') >= 0 %}signing-{% endif %}key-file={{ kubernetes_sa_path }} \
+{%- if salt['pkg.version_cmp'](kubernetes.source_version, 'v1.20.0') >= 0 %}
+    --service-account-key-file={{ kubernetes_sa_pub_path }} \
+    --service-account-issuer=https://{{ node_ip4 }}:6443 \
+{%- endif %}
+    --service-account-lookup=true \
+    --{% if salt['pkg.version_cmp'](kubernetes.source_version, 'v1.10.0') >= 0 %}enable-admission-plugins{% else %}admission-control{% endif %}=
+{%- if 'Node' in kubernetes.k8s.authorization_mode -%}NodeRestriction,{%- endif -%}NamespaceLifecycle,LimitRanger,ServiceAccount,ResourceQuota
+{%- if kubernetes_admission_controllers|length > 0 %}
+  {%- for controller in kubernetes_admission_controllers -%}
+  ,{{ controller }}
+  {%- endfor %}
+{%- endif %} \
+{%- if (salt['pkg.version_cmp'](kubernetes.source_version, 'v1.8.0') >= 0) and (salt['pkg.version_cmp'](kubernetes.source_version, 'v1.13.0') < 0) %}
+    --disable-admission-plugins=PersistentVolumeLabel \
+{%- endif %}
+{%- if (salt['pkg.version_cmp'](kubernetes.source_version, 'v1.12.0') >= 0) and (salt['pkg.version_cmp'](kubernetes.source_version, 'v1.14.0') < 0) %}
+    --feature-gates=NodeLease=true \
+{%- endif %}
+    --bind-address=0.0.0.0 \
+{%- if kubernetes.k8s.apiserver.insecure %}
+    --insecure-bind-address=0.0.0.0 \
+{%- endif %}
+    --etcd-servers={{ etcd.endpoints|join(',') }} \
+{%- if etcd.cluster.use_ssl %}
+    --etcd-cafile={{ etcd_ca_cert_path }} \
+    --etcd-certfile={{ etcd_ssl_cert_path }} \
+    --etcd-keyfile={{ etcd_ssl_key_path }} \
+{%- endif %}
+{%- if salt['pkg.version_cmp'](kubernetes.source_version, 'v1.6.0') < 0 %}
+    --storage-backend=etcd2 \
+    --storage-media-type=application/json \
+{%- endif %}
+{%- if kubernetes_runtime_config|length > 0 %}
+    --runtime-config={% for resource in kubernetes_runtime_config -%}
+        {{ resource }}{% if not loop.last %},{% endif %}
+{%- endfor %} \
+{%- endif %}
+    --logtostderr=true \
+    --service-cluster-ip-range={{ kubernetes_networks.svc_network_cidr }}
+{%- if kubernetes.k8s.use_ssl %} \
+    --tls-cert-file={{ component_ssl_cert_path }} \
+    --tls-private-key-file={{ component_ssl_key_path }} \
+    --client-ca-file={{ kubernetes_ca_cert_path }} \
+    --secure-port={{ kubernetes_apiserver_port }} \
+    --kubelet-client-certificate={{ kubelet_client_ssl_cert_path }} \
+    --kubelet-client-key={{ kubelet_client_ssl_key_path }}
+  {%- if salt['pkg.version_cmp'](kubernetes.source_version, 'v1.13.0') >= 0 %} \
+    {#- FIX: Delete ConfigMap kube-system/extension-apiserver-authentication to allow regeneration with proper values #}
+    --requestheader-client-ca-file={{ kubernetes_ssl_dir }}/proxy-ca.crt \
+    --proxy-client-cert-file={{ kubernetes_ssl_dir }}/proxy-client.crt \
+    --proxy-client-key-file={{ kubernetes_ssl_dir }}/proxy-client.key \
+    --requestheader-allowed-names=proxy-client \
+    --requestheader-extra-headers-prefix=X-Remote-Extra- \
+    --requestheader-group-headers=X-Remote-Group \
+    --requestheader-username-headers=X-Remote-User
+  {%- endif %}
+{%- endif %}
+Restart=on-failure
+Type=notify
+LimitNOFILE=65536
+
+[Install]
+WantedBy=multi-user.target

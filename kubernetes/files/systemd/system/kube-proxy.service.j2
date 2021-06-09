@@ -1,0 +1,31 @@
+{% from "kubernetes/map.jinja" import kubernetes with context %}
+
+{% set component = 'kube-proxy' %}
+{% set component_bin_path = kubernetes.install_dir + '/proxy' %}
+
+{% from "kubernetes/vars.jinja" import
+    kubernetes_scheme, kubernetes_apiserver_port,
+    kubernetes_etc_dir
+with context %}
+
+[Unit]
+Description=Kubernetes Proxy
+Documentation=https://github.com/kubernetes/kubernetes
+After=kube-apiserver.service flannel.service haproxy.service
+
+[Service]
+EnvironmentFile=-/run/flannel/subnet.env
+User=root
+ExecStart={{ component_bin_path }} \
+{%- if salt['pkg.version_cmp'](kubernetes.source_version, 'v1.8.0') >= 0 %}
+    --kubeconfig={{ kubernetes_etc_dir }}/proxy.kubeconfig \
+{%- endif %}
+    --master={{ kubernetes_scheme }}://127.0.0.1:{{ kubernetes_apiserver_port }} \
+    --logtostderr=true \
+    --cluster-cidr=${FLANNEL_NETWORK} \
+    --proxy-mode=iptables
+Restart=on-failure
+LimitNOFILE=65536
+
+[Install]
+WantedBy=multi-user.target

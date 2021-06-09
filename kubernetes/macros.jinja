@@ -1,0 +1,41 @@
+{% from "kubernetes/map.jinja" import kubernetes with context %}
+
+{%- macro kubecomponentbinary(component, component_source, component_source_hash, component_bin_path, package_flavor='server', is_service=True) %}
+{{ component }}:
+  file.managed:
+    - name: {{ component_bin_path }}
+    - mode: 755
+    - user: root
+    - source: {{ component_source }}
+    - source_hash: {{ component_source_hash }}
+    - follow_symlinks: False
+{% if salt['file.file_exists'](component_bin_path) %}
+    - onchanges:
+{% else %}
+    - require:
+{% endif %}
+      - archive: kubernetes-{{ package_flavor }}-download
+{% if is_service %}
+    - require_in:
+      - file: {{ component }}-systemd-unit-file
+{% endif %}
+{% endmacro -%}
+
+{%- macro kubepackagedownload(package_dir, package_source, package_source_hash, package_flavor='server') %}
+kubernetes-{{ package_flavor }}-download:
+  archive.extracted:
+    - name: {{ package_dir }}
+    - source: {{ package_source }}
+    - source_hash: {{ package_source_hash }}
+    - archive_format: tar
+    - options: v --strip=2
+    - user: nobody
+    - group: nogroup
+    - keep: True
+{% if salt['pkg.version_cmp'](kubernetes.source_version, 'v1.19.0') >= 0 %}
+    - enforce_toplevel: False
+{% endif %}
+    - if_missing: {{ package_dir }}
+    - require:
+      - pkg: ca-certificates
+{% endmacro %}

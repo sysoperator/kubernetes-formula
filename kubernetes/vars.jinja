@@ -1,0 +1,77 @@
+{% from "kubernetes/map.jinja" import kubernetes with context %}
+
+{% set cluster_ip4 = kubernetes.k8s.apiserver.cluster_ip %}
+{% set cluster_networks = kubernetes.k8s.networks %}
+{% set cluster_nameservers = kubernetes.k8s.cluster_dns.nameservers %}
+{% set cluster_domain = kubernetes.k8s.cluster_dns.cluster_domain %}
+
+{% set node_tags = salt['grains.get']('tags', []) %}
+{% set node_roles = salt['grains.get']('roles', []) %}
+
+{% if 'kube-master' in node_roles %}
+  {% set node_role = 'master' %}
+  {% set package_flavor = 'server' %}
+{% else %}
+  {% set node_role = 'node' %}
+  {% set package_flavor = 'node' %}
+{% endif %}
+
+{% set node_fqdn = grains['fqdn'] %}
+{% set node_host = grains['host'] %}
+{% set node_ip4 = grains['fqdn_ip4'][0] %}
+
+{% if salt['pkg.version_cmp'](kubernetes.source_version, 'v1.17.13') < 0 %}
+  {% set checksum_extension = '.sha1' %}
+{% else %}
+  {% set checksum_extension = '.sha512' %}
+{% endif %}
+
+{% set package_base_url = kubernetes.source_url + '/' + kubernetes.source_version %}
+{% set package_base_name = 'kubernetes-' + package_flavor + '-' + kubernetes.source_version + '-' + salt['grains.get']('kernel')|lower + '-' + salt['grains.get']('osarch') %}
+{% set package_dir = '/tmp/' + package_base_name %}
+{% set package_source = package_base_url + '/' + package_base_name|replace('-' + kubernetes.source_version, '') + '.tar.gz' %}
+{% set package_source_hash = package_source + checksum_extension %}
+
+{% if component is undefined %}
+  {% set component = 'kubernetes' %}
+{% endif %}
+
+{% set component_source = package_dir + '/bin/' + component %}
+{% set component_source_hash = kubernetes.source_url + '/' + kubernetes.source_version + '/bin/' + salt['grains.get']('kernel')|lower + '/' + salt['grains.get']('osarch') + '/' + component + checksum_extension %}
+
+{% set kubernetes_scheme = 'https' if kubernetes.k8s.use_ssl else 'http' %}
+{% set kubernetes_apiserver_port = (kubernetes.k8s.apiserver.secure_port|string) if kubernetes.k8s.use_ssl else '8080' %}
+
+{% set kubernetes_networks = kubernetes.k8s.networks %}
+{% set kubernetes_runtime_config = kubernetes.k8s.runtime_config if kubernetes.k8s.runtime_config is not none else {} %}
+{% set kubernetes_admission_controllers = kubernetes.k8s.admission_controllers if kubernetes.k8s.admission_controllers is not none else {} %}
+
+{% set kubernetes_etc_dir = kubernetes.k8s.etcdir %}
+{% set kubernetes_security_dir = kubernetes_etc_dir + '/security' %}
+{% set kubernetes_ssl_dir = kubernetes_etc_dir + '/ssl' %}
+{% set kubernetes_state_dir = kubernetes.k8s.statedir %}
+
+{% set kubernetes_ssl_cert_days_valid = 365 %}
+{% set kubernetes_ssl_cert_days_remaining = 30 %}
+{% set kubernetes_ca_cert_path = kubernetes_ssl_dir + '/ca.crt' %}
+{% set kubernetes_ca_key_path = kubernetes_ssl_dir + '/ca.key' %}
+{% set kubernetes_sa_path = kubernetes_etc_dir + '/sa.key' %}
+{% set kubernetes_sa_pub_path = kubernetes_etc_dir + '/sa.pub' %}
+
+{% set kubelet_client_ssl_cert_path = kubernetes_ssl_dir + '/apiserver-kubelet-client.crt' %}
+{% set kubelet_client_ssl_key_path = kubernetes_ssl_dir + '/apiserver-kubelet-client.key' %}
+{% set kubelet_client_ssl_subject_CN = 'kube-apiserver-kubelet-client' %}
+{% set kubelet_client_ssl_subject_O  = 'system:masters' %}
+
+{% if salt['pkg.version_cmp'](kubernetes.source_version, 'v1.13.0') >= 0 %}
+  {% set proxy_ca_cert_path = kubernetes_ssl_dir + '/proxy-ca.crt' %}
+  {% set proxy_ca_key_path = kubernetes_ssl_dir + '/proxy-ca.key' %}
+  {% set proxy_client_ssl_cert_path = kubernetes_ssl_dir + '/proxy-client.crt' %}
+  {% set proxy_client_ssl_key_path = kubernetes_ssl_dir + '/proxy-client.key' %}
+  {% set proxy_client_ssl_subject_CN = 'proxy-client' %}
+{% endif %}
+
+{% set component_ssl_base_name = 'apiserver' if component == 'kube-apiserver' else component %}
+{% set component_ssl_base_path = kubernetes_ssl_dir + '/' +  component_ssl_base_name %}
+{% set component_ssl_cert_path = component_ssl_base_path + '.crt' %}
+{% set component_ssl_key_path  = component_ssl_base_path + '.key' %}
