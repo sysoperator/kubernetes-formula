@@ -2,7 +2,7 @@
 kubernetes:
   lookup:
     source_url: https://storage.googleapis.com/kubernetes-release/release
-    source_version: v1.20.6
+    source_version: v1.21.5
     install_dir: /usr/local/bin
     k8s:
       statedir: /var/lib/k8s/kubernetes
