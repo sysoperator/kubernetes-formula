@@ -1,5 +1,4 @@
 #!yaml|gpg
-
 etcd:
   lookup:
     source_url: https://github.com/etcd-io/etcd/releases/download

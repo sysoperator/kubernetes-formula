@@ -1,5 +1,4 @@
 #!yaml|gpg
-
 kubernetes:
   lookup:
     source_url: https://storage.googleapis.com/kubernetes-release/release
