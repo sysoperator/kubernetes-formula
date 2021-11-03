@@ -43,6 +43,10 @@ kubernetes:
         #- ...
       use_ssl: True
       enable_cert_issuer: False
+      cert_issuer_duration: 720h
+      cert_issuers:
+        # Cert issuers:
+        #- ...
       log_debug: False
       ca_cert: |
           -----BEGIN CERTIFICATE-----

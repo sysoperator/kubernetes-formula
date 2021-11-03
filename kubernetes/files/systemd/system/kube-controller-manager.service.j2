@@ -5,8 +5,10 @@
 
 {% from "kubernetes/vars.jinja" import
     kubernetes_scheme, kubernetes_apiserver_port,
-    kubernetes_etc_dir,
-    kubernetes_ca_cert_path, kubernetes_ca_key_path, kubernetes_sa_path
+    kubernetes_etc_dir, kubernetes_ssl_dir,
+    kubernetes_ca_cert_path, kubernetes_ca_key_path, kubernetes_sa_path,
+    kubernetes_cert_issuers,
+    kubernetes_cert_issuer_duration
 with context %}
 
 [Unit]
@@ -21,8 +23,15 @@ ExecStart={{ component_bin_path }} \
 {%- if kubernetes.k8s.use_ssl %}
     --root-ca-file={{ kubernetes_ca_cert_path }} \
   {%- if kubernetes.k8s.enable_cert_issuer %}
-    --cluster-signing-cert-file={{ kubernetes_ca_cert_path }} \
-    --cluster-signing-key-file={{ kubernetes_ca_key_path }} \
+    --cluster-signing-kube-apiserver-client-cert-file={{ kubernetes_ca_cert_path }} \
+    --cluster-signing-kube-apiserver-client-key-file={{ kubernetes_ca_key_path }} \
+    --cluster-signing-duration={{ kubernetes_cert_issuer_duration }} \
+    {%- if kubernetes_cert_issuers|length > 0 %}
+      {%- for issuer in kubernetes_cert_issuers %}
+    --cluster-signing-{{ issuer }}-cert-file={{ kubernetes_ssl_dir }}/signers/{{ issuer }}/ca.crt \
+    --cluster-signing-{{ issuer }}-key-file={{ kubernetes_ssl_dir }}/signers/{{ issuer }}/ca.key \
+      {%- endfor %}
+    {%- endif %}
   {%- endif %}
     --use-service-account-credentials \
     --kubeconfig={{ kubernetes_etc_dir }}/controller-manager.kubeconfig \
