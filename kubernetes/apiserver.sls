@@ -30,7 +30,10 @@ include:
     - source: salt://kubernetes/files/systemd/system/{{ component }}.service.j2
     - template: jinja
     - require:
-      - file: {{ component }}-service-account.key
+      - file: sa.key
+{%- if salt['pkg.version_cmp'](kubernetes.source_version, 'v1.20.0') >= 0 %}
+      - file: sa.pub
+{%- endif %}
     - require_in:
       - service: {{ component }}-service-enable
     - watch_in:
