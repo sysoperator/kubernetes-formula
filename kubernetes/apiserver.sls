@@ -30,7 +30,7 @@ include:
     - source: salt://kubernetes/files/systemd/system/{{ component }}.service.j2
     - template: jinja
     - require:
-      - file: sa.key
+      - x509: sa.key
 {%- if salt['pkg.version_cmp'](kubernetes.source_version, 'v1.20.0') >= 0 %}
       - file: sa.pub
 {%- endif %}
