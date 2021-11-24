@@ -20,7 +20,7 @@ flannel-systemd-unit-file:
     - template: jinja
     - require_in:
       - service: flannel-service-enable
-      - file: docker-systemd-unit-file
+      - file: docker-systemd-drop-in
     - watch_in:
       - module: systemctl-reload
 

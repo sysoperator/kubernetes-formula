@@ -23,33 +23,6 @@ include:
   - .haproxy
 {% endif %}
 
-{# Cleanup #}
-kube-{{ node_role }}.crt:
-  file.rename:
-    - name: {{ component_ssl_cert_path }}
-    - source: {{ kubernetes_ssl_dir }}/kube-{{ node_role }}.crt
-    - require:
-      - file: kube-{{ node_role }}.key
-
-kube-{{ node_role }}.key:
-  file.rename:
-    - name: {{ component_ssl_key_path }}
-    - source: {{ kubernetes_ssl_dir }}/kube-{{ node_role }}.key
-
-kube-{{ component }}-service-disable:
-  service.disabled:
-    - name: kube-{{ component }}
-    - onlyif: test -f /lib/systemd/system/kube-{{ component }}.service
-    - require_in:
-      - file: kube-{{ component }}-systemd-unit-file
-
-kube-{{ component }}-systemd-unit-file:
-  file.absent:
-    - name: /lib/systemd/system/kube-{{ component }}.service
-    - watch_in:
-      - module: systemctl-reload
-{# EOF #}
-
 {{ kubecomponentbinary(component, component_source, component_source_hash, component_bin_path, package_flavor) }}
 
 {{ component }}-systemd-unit-file:
@@ -60,7 +33,6 @@ kube-{{ component }}-systemd-unit-file:
 {% if kubernetes.k8s.use_ssl %}
     - require:
       - x509: kubernetes-ca.crt
-      - file: kube-{{ node_role }}.crt
       - x509: {{ component }}.crt
 {% endif %}
     - require_in:

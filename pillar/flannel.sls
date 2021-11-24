@@ -1,6 +1,6 @@
 flannel:
   lookup:
     source_url: https://github.com/flannel-io/flannel/releases/download
-    source_version: v0.14.0
-    source_hash: sha256=47f039b97f2f1879fbb5aae972fb0f2e01124f55b29ade088976f34cd948c240
+    source_version: v0.15.1
+    source_hash: sha256=353938620fd409c6f5f812b0f09f2b6557c2fbf9ef227d72504ad54f3675b962
     install_dir: /usr/local/bin

@@ -22,22 +22,6 @@ with context %}
 include:
   - systemd/cmd
 
-{# Cleanup #}
-{{ component }}-auth-tokens:
-  file.absent:
-    - name: {{ kubernetes_security_dir }}/tokens.csv
-    - require_in:
-      - file: kubernetes-security-dir
-      - file: {{ component }}-systemd-unit-file
-
-{{ component }}-auth-abac:
-  file.absent:
-    - name: {{ kubernetes_security_dir }}/abac.policy.json
-    - require_in:
-      - file: kubernetes-security-dir
-      - file: {{ component }}-systemd-unit-file
-{# EOF #}
-
 {{ kubecomponentbinary(component, component_source, component_source_hash, component_bin_path) }}
 
 {{ component }}-systemd-unit-file:
@@ -82,10 +66,10 @@ include:
       - file: {{ component }}-systemd-unit-file
       - file: {{ component }}
     - require_in:
-      - service: kube-controller-manager
-      - service: kube-scheduler
-      - service: kubelet
-      - service: kube-proxy
+      - service: kube-controller-manager-service-running
+      - service: kube-scheduler-service-running
+      - service: kubelet-service-running
+      - service: kube-proxy-service-running
 
 {# Certs #}
 {%- if kubernetes.k8s.use_ssl %}

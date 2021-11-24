@@ -2,7 +2,7 @@
 kubernetes:
   lookup:
     source_url: https://storage.googleapis.com/kubernetes-release/release
-    source_version: v1.21.5
+    source_version: v1.21.7
     install_dir: /usr/local/bin
     k8s:
       statedir: /var/lib/k8s/kubernetes
@@ -25,7 +25,7 @@ kubernetes:
           #- 2nd entry
           #- ...
       networks:
-        pod_network_cidr: 172.18.0.0/15
+        pod_network_cidr: 172.16.128.0/17
         svc_network_cidr: 172.16.0.0/20
       authorization_mode:
         - Node
