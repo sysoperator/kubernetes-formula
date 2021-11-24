@@ -8,7 +8,7 @@
     cluster_domain, cluster_ip4,
     node_role, node_fqdn, node_host, node_ip4,
     package_flavor,
-    kubernetes_etc_dir, kubernetes_security_dir, kubernetes_state_dir,
+    kubernetes_etc_dir, kubernetes_security_dir,
     kubernetes_ssl_cert_days_valid, kubernetes_ssl_cert_days_remaining,
     kubernetes_ca_cert_path, kubernetes_ca_key_path,
     kubernetes_sa_path,
@@ -35,14 +35,6 @@ include:
       - service: {{ component }}-service-enable
     - watch_in:
       - module: systemctl-reload
-
-{{ component }}-service-account.key:
-  file.symlink:
-    - name: {{ kubernetes_state_dir }}/kube-service-account.key
-    - target: {{ kubernetes_sa_path }}
-    - require:
-      - file: kubernetes-state-dir
-      - x509: sa.key
 
 {{ component }}-service-enable:
   service.enabled:

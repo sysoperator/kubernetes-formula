@@ -1,7 +1,7 @@
 {% from "kubernetes/map.jinja" import kubernetes with context %}
 
 {% from "kubernetes/vars.jinja" import
-    kubernetes_etc_dir, kubernetes_state_dir, kubernetes_ssl_dir
+    kubernetes_etc_dir, kubernetes_ssl_dir
 with context %}
 
 kubernetes-etc-dir:
@@ -21,10 +21,3 @@ kubernetes-ssl-dir:
     - user: root
     - makedirs: True
 {% endif %}
-
-kubernetes-state-dir:
-  file.directory:
-    - name: {{ kubernetes_state_dir }}
-    - dir_mode: 755
-    - user: root
-    - makedirs: True

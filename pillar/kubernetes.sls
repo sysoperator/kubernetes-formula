@@ -5,7 +5,6 @@ kubernetes:
     source_version: v1.21.7
     install_dir: /usr/local/bin
     k8s:
-      statedir: /var/lib/k8s/kubernetes
       etcdir: /etc/kubernetes
       apiserver:
         cluster_ip: 172.16.0.1
