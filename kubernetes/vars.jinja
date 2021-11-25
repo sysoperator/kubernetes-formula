@@ -20,24 +20,18 @@ with context %}
 {% set node_host = grains['host'] %}
 {% set node_ip4 = grains['fqdn_ip4'][0] %}
 
-{% if salt['pkg.version_cmp'](kubernetes.source_version, 'v1.17.13') < 0 %}
-  {% set checksum_extension = '.sha1' %}
-{% else %}
-  {% set checksum_extension = '.sha512' %}
-{% endif %}
-
 {% set package_base_url = kubernetes.source_url + '/' + kubernetes.source_version %}
 {% set package_base_name = 'kubernetes-' + package_flavor + '-' + kubernetes.source_version + '-' + salt['grains.get']('kernel')|lower + '-' + salt['grains.get']('osarch') %}
 {% set package_dir = '/tmp/' + package_base_name %}
 {% set package_source = package_base_url + '/' + package_base_name|replace('-' + kubernetes.source_version, '') + '.tar.gz' %}
-{% set package_source_hash = package_source + checksum_extension %}
+{% set package_source_hash = package_source + '.sha512' %}
 
 {% if component is undefined %}
   {% set component = 'kubernetes' %}
 {% endif %}
 
 {% set component_source = package_dir + '/bin/' + component %}
-{% set component_source_hash = kubernetes.source_url + '/' + kubernetes.source_version + '/bin/' + salt['grains.get']('kernel')|lower + '/' + salt['grains.get']('osarch') + '/' + component + checksum_extension %}
+{% set component_source_hash = kubernetes.source_url + '/' + kubernetes.source_version + '/bin/' + salt['grains.get']('kernel')|lower + '/' + salt['grains.get']('osarch') + '/' + component + '.sha512' %}
 
 {% set kubernetes_scheme = 'https' %}
 {% set kubernetes_apiserver_port = (kubernetes.k8s.apiserver.secure_port|string) %}

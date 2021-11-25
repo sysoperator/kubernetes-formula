@@ -1,5 +1,9 @@
 {% from "kubernetes/map.jinja" import kubernetes with context %}
 
+{% from "kubernetes/vars.jinja" import
+    node_role
+with context %}
+
 {%- macro kubecomponentbinary(component, component_source, component_source_hash, component_bin_path, package_flavor='server', is_service=True) %}
 {{ component }}:
   file.managed:
@@ -32,10 +36,81 @@ kubernetes-{{ package_flavor }}-download:
     - user: nobody
     - group: nogroup
     - keep: True
-{% if salt['pkg.version_cmp'](kubernetes.source_version, 'v1.19.0') >= 0 %}
     - enforce_toplevel: False
-{% endif %}
     - if_missing: {{ package_dir }}
     - require:
       - pkg: ca-certificates
+{% endmacro %}
+
+{%- macro kubepkicertvalid(name, cert_path, days_remaining=30) %}
+{{ name }}.crt-valid:
+  tls.valid_certificate:
+    - name: {{ cert_path }}
+    - days: {{ days_remaining }}
+    - require:
+      - pkg: python3-openssl
+    - onlyif:
+      - test -f {{ cert_path }}
+{% endmacro %}
+
+{%- macro kubepkicert(name, cert_path, key_path, ca_path, ca_key_path, key_usage='clientAuth', days_valid=365, days_remaining=30, subject_CN=None, subject_O=None, subject_SAN=None) %}
+{{ name }}.crt:
+  x509.certificate_managed:
+    - name: {{ cert_path }}
+    - mode: 644
+    - user: root
+    - signing_cert: {{ ca_path }}
+    - signing_private_key: {{ ca_key_path }}
+    - public_key: {{ key_path }}
+    - CN: {{ subject_CN }}
+  {%- if subject_O %}
+    - O: {{ subject_O }}
+  {%- endif %}
+  {%- if subject_SAN %}
+    - subjectAltName: {{ subject_SAN }}
+  {%- endif %}
+    - basicConstraints: "CA:FALSE"
+    - keyUsage: "nonRepudiation, digitalSignature, keyEncipherment"
+    - extendedKeyUsage: "{{ key_usage }}"
+    - days_valid: {{ days_valid }}
+    - days_remaining: {{ days_remaining }}
+    - backup: True
+    - require:
+      - pkg: python3-m2crypto
+  {%- if salt['file.file_exists'](cert_path) %}
+    - onfail:
+      - tls: {{ name }}.crt-valid
+  {%- endif %}
+  {%- if name == 'etcd' %}
+    - watch_in:
+    {%- if node_role == 'master' %}
+      - module: kube-apiserver-service-restart
+    {%- endif %}
+      - module: flannel-service-restart
+  {%- endif %}
+{% endmacro %}
+
+{%- macro kubepkikey(name, key_path, key_owner=None) %}
+{{ name }}.key:
+  x509.private_key_managed:
+    - name: {{ key_path }}
+    - bits: 2048
+    - verbose: False
+    - mode: 600
+  {%- if key_owner %}
+    - user: {{ key_owner }}
+  {%- endif %}
+    - require:
+      - pkg: python3-m2crypto
+  {%- if key_owner %}
+      - user: {{ key_owner }}-user
+  {%- endif %}
+    - require_in:
+      - x509: {{ name }}.crt
+{% endmacro %}
+
+{%- macro generatesanfrompeers(peers) %}
+  {%- for peer in peers -%}
+    IP:{{ peer['ip'] }}{% if not loop.last %}, {% endif %}
+  {%- endfor %}
 {% endmacro %}

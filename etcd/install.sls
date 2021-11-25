@@ -1,5 +1,10 @@
 {% from "etcd/map.jinja" import etcd with context %}
 
+{% from "kubernetes/macros.jinja" import
+    kubepkicertvalid, kubepkicert, kubepkikey,
+    generatesanfrompeers
+with context %}
+
 {% from "kubernetes/vars.jinja" import
     node_role, node_host, node_ip4,
     kubernetes_ssl_cert_days_valid, kubernetes_ssl_cert_days_remaining
@@ -13,6 +18,12 @@ with context %}
     etcd_ssl_cert_path, etcd_ssl_key_path,
     etcd_bin_path, etcdctl_bin_path
 with context %}
+
+{% set etcd_user = 'etcd' if node_role == 'master' else '' %}
+{% set etcd_ssl_key_usage = 'clientAuth, serverAuth' if node_role == 'master' else 'clientAuth' %}
+{% set etcd_ssl_subject_CN = node_host %}
+{% set etcd_ssl_subject_O = None %}
+{% set etcd_ssl_subject_SAN = generatesanfrompeers(etcd_peers) if node_role == 'master' else 'IP:' + node_ip4 %}
 
 include:
   - debian/packages/ca-certificates
@@ -55,69 +66,11 @@ etcd-ca.key-delete:
     - name: {{ etcd_ca_key_path }}
     - order: last
 
-etcd.crt-validate:
-  tls.valid_certificate:
-    - name: {{ etcd_ssl_cert_path }}
-    - days: {{ kubernetes_ssl_cert_days_remaining }}
-    - require:
-      - pkg: python3-openssl
-    - onlyif:
-      - test -f {{ etcd_ssl_cert_path }}
+{{ kubepkicertvalid('etcd', etcd_ssl_cert_path, kubernetes_ssl_cert_days_remaining) }}
 
-etcd.crt:
-  x509.certificate_managed:
-    - name: {{ etcd_ssl_cert_path }}
-    - mode: 644
-    - user: root
-    - signing_cert: {{ etcd_ca_cert_path }}
-    - signing_private_key: {{ etcd_ca_key_path }}
-    - public_key: {{ etcd_ssl_key_path }}
-    - CN: {{ node_host }}
-    - basicConstraints: "CA:FALSE"
-{%- if node_role == 'master' %}
-    - extendedKeyUsage: "clientAuth, serverAuth"
-{%- else %}
-    - extendedKeyUsage: "clientAuth"
-{%- endif %}
-    - keyUsage: "nonRepudiation, digitalSignature, keyEncipherment"
-{%- if node_role == 'master' %}
-    - subjectAltName: "{% for peer in etcd_peers -%}
-      IP:{{ peer['ip'] }}{% if not loop.last %}, {% endif %}
-  {%- endfor %}"
-{%- else %}
-    - subjectAltName: "IP:{{ node_ip4 }}"
-{%- endif %}
-    - days_valid: {{ kubernetes_ssl_cert_days_valid }}
-    - days_remaining: {{ kubernetes_ssl_cert_days_remaining }}
-    - backup: True
-    - require:
-      - pkg: python3-m2crypto
-{%- if salt['file.file_exists'](etcd_ssl_cert_path) %}
-    - onfail:
-      - tls: etcd.crt-validate
-{%- endif %}
-    - watch_in:
-{%- if node_role == 'master' %}
-      - module: kube-apiserver-service-restart
-{%- endif %}
-      - module: flannel-service-restart
+{{ kubepkicert('etcd', etcd_ssl_cert_path, etcd_ssl_key_path, etcd_ca_cert_path, etcd_ca_key_path, etcd_ssl_key_usage, kubernetes_ssl_cert_days_valid, kubernetes_ssl_cert_days_remaining, etcd_ssl_subject_CN, etcd_ssl_subject_O, etcd_ssl_subject_SAN) }}
 
-etcd.key:
-  x509.private_key_managed:
-    - name: {{ etcd_ssl_key_path }}
-    - bits: 2048
-    - verbose: False
-    - mode: 600
-{%- if node_role == 'master' %}
-    - user: etcd
-{%- endif %}
-    - require:
-      - pkg: python3-m2crypto
-{%- if node_role == 'master' %}
-      - user: etcd-user
-{%- endif %}
-    - require_in:
-      - x509: etcd.crt
+{{ kubepkikey('etcd', etcd_ssl_key_path, etcd_user) }}
 
 etcd-download:
   archive.extracted:

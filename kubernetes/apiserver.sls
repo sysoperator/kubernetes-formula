@@ -1,5 +1,8 @@
 {% from "kubernetes/map.jinja" import kubernetes with context %}
-{% from "kubernetes/macros.jinja" import kubecomponentbinary with context %}
+{% from "kubernetes/macros.jinja" import
+    kubecomponentbinary,
+    kubepkicertvalid, kubepkicert, kubepkikey
+with context %}
 
 {% set component = 'kube-apiserver' %}
 {% set component_bin_path = kubernetes.install_dir + '/apiserver' %}
@@ -17,7 +20,8 @@
 with context %}
 
 {% set component_ssl_subject_CN = component %}
-{% set component_ssl_subject_O  = component %}
+{% set component_ssl_subject_O  = None %}
+{% set component_ssl_subject_SAN = 'DNS:localhost, IP:127.0.0.1, DNS:kubernetes, DNS:kubernetes.default, DNS:kubernetes.default.svc, DNS:kubernetes.default.svc.' + cluster_domain + ', IP:' + cluster_ip4 + ', DNS:' + node_fqdn + ', DNS:' + node_host + ', IP:' + node_ip4 %}
 
 include:
   - systemd/cmd
@@ -64,47 +68,8 @@ include:
       - service: kubelet-service-running
       - service: kube-proxy-service-running
 
-{# Certs #}
-{{ component }}.crt-validate:
-  tls.valid_certificate:
-    - name: {{ component_ssl_cert_path }}
-    - days: {{ kubernetes_ssl_cert_days_remaining }}
-    - require:
-      - pkg: python3-openssl
-    - onlyif:
-      - test -f {{ component_ssl_cert_path }}
+{{ kubepkicertvalid(component, component_ssl_cert_path, kubernetes_ssl_cert_days_remaining) }}
 
-{{ component }}.crt:
-  x509.certificate_managed:
-    - name: {{ component_ssl_cert_path }}
-    - mode: 644
-    - user: root
-    - signing_cert: {{ kubernetes_ca_cert_path }}
-    - signing_private_key: {{ kubernetes_ca_key_path }}
-    - public_key: {{ component_ssl_key_path }}
-    - CN: {{ component_ssl_subject_CN }}
-    - basicConstraints: "CA:FALSE"
-    - extendedKeyUsage: "serverAuth"
-    - keyUsage: "nonRepudiation, digitalSignature, keyEncipherment"
-    - subjectAltName: "DNS:localhost, IP:127.0.0.1, DNS:kubernetes, DNS:kubernetes.default, DNS:kubernetes.default.svc, DNS:kubernetes.default.svc.{{ cluster_domain }}, IP:{{ cluster_ip4 }}, DNS:{{ node_fqdn }}, DNS:{{ node_host }}, IP:{{ node_ip4 }}"
-    - days_valid: {{ kubernetes_ssl_cert_days_valid }}
-    - days_remaining: {{ kubernetes_ssl_cert_days_remaining }}
-    - backup: True
-    - require:
-      - pkg: python3-m2crypto
-{%- if salt['file.file_exists'](component_ssl_cert_path) %}
-    - onfail:
-      - tls: {{ component }}.crt-validate
-{%- endif %}
+{{ kubepkicert(component, component_ssl_cert_path, component_ssl_key_path, kubernetes_ca_cert_path, kubernetes_ca_key_path, 'serverAuth', kubernetes_ssl_cert_days_valid, kubernetes_ssl_cert_days_remaining, component_ssl_subject_CN, component_ssl_subject_O, component_ssl_subject_SAN) }}
 
-{{ component }}.key:
-  x509.private_key_managed:
-    - name: {{ component_ssl_key_path }}
-    - bits: 2048
-    - verbose: False
-    - mode: 600
-    - require:
-      - pkg: python3-m2crypto
-    - require_in:
-      - x509: {{ component }}.crt
-{# EOF #}
+{{ kubepkikey(component, component_ssl_key_path) }}

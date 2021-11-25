@@ -1,5 +1,8 @@
 {% from "kubernetes/map.jinja" import kubernetes with context %}
-{% from "kubernetes/macros.jinja" import kubepackagedownload with context %}
+{% from "kubernetes/macros.jinja" import
+    kubepackagedownload,
+    kubepkicertvalid, kubepkicert, kubepkikey
+with context %}
 
 {% from "kubernetes/vars.jinja" import
     cluster_nameservers, cluster_domain,
@@ -102,50 +105,12 @@ kubernetes-ca.key-delete:
 {%- endif %}
 
 {%- if node_role == 'master' %}
-kubelet-client.crt-validate:
-  tls.valid_certificate:
-    - name: {{ kubelet_client_ssl_cert_path }}
-    - days: {{ kubernetes_ssl_cert_days_remaining }}
-    - require:
-      - pkg: python3-openssl
-    - onlyif:
-      - test -f {{ kubelet_client_ssl_cert_path }}
+{{ kubepkicertvalid('kubelet-client', kubelet_client_ssl_cert_path, kubernetes_ssl_cert_days_remaining) }}
 
-kubelet-client.crt:
-  x509.certificate_managed:
-    - name: {{ kubelet_client_ssl_cert_path }}
-    - mode: 644
-    - user: root
-    - signing_cert: {{ kubernetes_ca_cert_path }}
-    - signing_private_key: {{ kubernetes_ca_key_path }}
-    - public_key: {{ kubelet_client_ssl_key_path }}
-    - CN: {{ kubelet_client_ssl_subject_CN }}
-    - O: {{ kubelet_client_ssl_subject_O }}
-    - basicConstraints: "CA:FALSE"
-    - extendedKeyUsage: "clientAuth"
-    - keyUsage: "nonRepudiation, digitalSignature, keyEncipherment"
-    - days_valid: {{ kubernetes_ssl_cert_days_valid }}
-    - days_remaining: {{ kubernetes_ssl_cert_days_remaining }}
-    - backup: True
-    - require:
-      - pkg: python3-m2crypto
-  {%- if salt['file.file_exists'](kubelet_client_ssl_cert_path) %}
-    - onfail:
-      - tls: kubelet-client.crt-validate
-  {%- endif %}
+{{ kubepkicert('kubelet-client', kubelet_client_ssl_cert_path, kubelet_client_ssl_key_path, kubernetes_ca_cert_path, kubernetes_ca_key_path, 'clientAuth', kubernetes_ssl_cert_days_valid, kubernetes_ssl_cert_days_remaining, kubelet_client_ssl_subject_CN, kubelet_client_ssl_subject_O) }}
 
-kubelet-client.key:
-  x509.private_key_managed:
-    - name: {{ kubelet_client_ssl_key_path }}
-    - bits: 2048
-    - verbose: False
-    - mode: 600
-    - require:
-      - pkg: python3-m2crypto
-    - require_in:
-      - x509: kubelet-client.crt
+{{ kubepkikey('kubelet-client', kubelet_client_ssl_key_path) }}
 
-  {%- if salt['pkg.version_cmp'](kubernetes.source_version, 'v1.13.0') >= 0 %}
 proxy-ca.crt:
   x509.pem_managed:
     - name: {{ proxy_ca_cert_path }}
@@ -179,48 +144,11 @@ proxy-ca.key-delete:
     - name: {{ proxy_ca_key_path }}
     - order: last
 
-proxy-client.crt-validate:
-  tls.valid_certificate:
-    - name: {{ proxy_client_ssl_cert_path }}
-    - days: {{ kubernetes_ssl_cert_days_remaining }}
-    - require:
-      - pkg: python3-openssl
-    - onlyif:
-      - test -f {{ proxy_client_ssl_cert_path }}
+{{ kubepkicertvalid('proxy-client', proxy_client_ssl_cert_path, kubernetes_ssl_cert_days_remaining) }}
 
-proxy-client.crt:
-  x509.certificate_managed:
-    - name: {{ proxy_client_ssl_cert_path }}
-    - mode: 644
-    - user: root
-    - signing_cert: {{ proxy_ca_cert_path }}
-    - signing_private_key: {{ proxy_ca_key_path }}
-    - public_key: {{ proxy_client_ssl_key_path }}
-    - CN: {{ proxy_client_ssl_subject_CN }}
-    - basicConstraints: "CA:FALSE"
-    - extendedKeyUsage: "clientAuth"
-    - keyUsage: "nonRepudiation, digitalSignature, keyEncipherment"
-    - days_valid: {{ kubernetes_ssl_cert_days_valid }}
-    - days_remaining: {{ kubernetes_ssl_cert_days_remaining }}
-    - backup: True
-    - require:
-      - pkg: python3-m2crypto
-      {%- if salt['file.file_exists'](proxy_client_ssl_cert_path) %}
-    - onfail:
-      - tls: proxy-client.crt-validate
-      {%- endif %}
+{{ kubepkicert('proxy-client', proxy_client_ssl_cert_path, proxy_client_ssl_key_path, proxy_ca_cert_path, proxy_ca_key_path, 'clientAuth', kubernetes_ssl_cert_days_valid, kubernetes_ssl_cert_days_remaining, proxy_client_ssl_subject_CN) }}
 
-proxy-client.key:
-  x509.private_key_managed:
-    - name: {{ proxy_client_ssl_key_path }}
-    - bits: 2048
-    - verbose: False
-    - mode: 600
-    - require:
-      - pkg: python3-m2crypto
-    - require_in:
-      - x509: proxy-client.crt
-  {%- endif %}
+{{ kubepkikey('proxy-client', proxy_client_ssl_key_path) }}
 {%- endif %}
 
 {{ kubepackagedownload(package_dir, package_source, package_source_hash, package_flavor) }}
