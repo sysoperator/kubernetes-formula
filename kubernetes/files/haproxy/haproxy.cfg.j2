@@ -49,24 +49,16 @@ defaults
 	errorfile 503 /etc/haproxy/errors/503.http
 	errorfile 504 /etc/haproxy/errors/504.http
 
-frontend kube-apiserver {% if grains['oscodename'] == 'jessie' %}{{ bind }}{% endif %}
-{%- if kubernetes.k8s.use_ssl %}
+frontend kube-apiserver
 	mode tcp
-{%- endif %}
-{%- if grains['oscodename'] == 'stretch' %}
 	bind {{ bind }}
-{%- endif %}
 	default_backend kube-apiserver
 
 backend kube-apiserver
-{%- if kubernetes.k8s.use_ssl %}
 	mode tcp
-{%- endif %}
 	balance roundrobin
-{%- if kubernetes.k8s.use_ssl %}
 	option tcp-check
-{%- endif %}
 	option log-health-checks
 {%- for peer in etcd.cluster.peers %}
-	server {{ peer['name'] }} {{ peer['ip'] }}:{{ kubernetes_apiserver_port }} weight 1 maxconn 4096 check fall 3 rise 2{% if not kubernetes.k8s.use_ssl %} ssl verify none{% endif %}
+	server {{ peer['name'] }} {{ peer['ip'] }}:{{ kubernetes_apiserver_port }} weight 1 maxconn 4096 check fall 3 rise 2
 {%- endfor %}

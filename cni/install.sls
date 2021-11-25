@@ -7,6 +7,7 @@ with context %}
 
 include:
   - debian/packages/ca-certificates
+  - debian/packages/bridge-utils
   - .dirs
 
 {{ cni_etc_dir }}/10-bridge.conf:
@@ -28,4 +29,5 @@ cni-plugins-install:
     - keep: True
     - require:
       - pkg: ca-certificates
+      - pkg: bridge-utils
       - file: {{ cni_plugins_dir }}
