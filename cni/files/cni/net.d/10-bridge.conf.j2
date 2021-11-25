@@ -1,0 +1,21 @@
+{% from "cni/vars.jinja" import
+    cni_data_dir,
+    cni_network_name, cni_bridge_name
+with context -%}
+
+{% set node_pod_network_cidr = salt['cmd.shell']('grep FLANNEL_SUBNET= /run/flannel/subnet.env | cut -d= -f2')|network_address -%}
+{% set node_pod_network_mtu = salt['cmd.shell']('grep FLANNEL_MTU= /run/flannel/subnet.env | cut -d= -f2')|int -%}
+
+{
+  "cniVersion": "0.3.1",
+  "name": "{{ cni_network_name }}",
+  "type": "bridge",
+  "bridge": "{{ cni_bridge_name }}",
+  "ipam": {
+     "type": "host-local",
+     "subnet": "{{ node_pod_network_cidr }}",
+     "dataDir": "{{ cni_data_dir }}"
+  },
+  "isDefaultGateway": true,
+  "mtu": {{ node_pod_network_mtu }}
+}

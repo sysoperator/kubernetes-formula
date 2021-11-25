@@ -1,0 +1,6 @@
+{% set cni = salt['grains.filter_by']({
+  'Debian': {
+  },
+  'Ubuntu': {
+  },
+}, grain='os', merge=salt['pillar.get']('cni:lookup')) %}

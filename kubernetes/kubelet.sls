@@ -17,8 +17,13 @@ with context %}
 {% set component_ssl_subject_CN = 'system:node:' + node_host %}
 {% set component_ssl_subject_O  = 'system:nodes' %}
 
+{% from "cni/vars.jinja" import
+    cni_etc_dir
+with context %}
+
 include:
   - systemd/cmd
+  - cni
 {% if node_role == 'node' %}
   - .haproxy
 {% endif %}
@@ -33,6 +38,7 @@ include:
     - require:
       - x509: kubernetes-ca.crt
       - x509: {{ component }}.crt
+      - file: {{ cni_etc_dir }}/10-bridge.conf
     - require_in:
       - service: {{ component }}-service-enable
     - watch_in:
