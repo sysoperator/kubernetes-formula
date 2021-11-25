@@ -16,9 +16,7 @@ After=kube-apiserver.service
 [Service]
 User=root
 ExecStart={{ component_bin_path }} \
-{%- if kubernetes.k8s.use_ssl %}
     --kubeconfig={{ kubernetes_etc_dir }}/scheduler.kubeconfig \
-{%- endif %}
     --master={{ kubernetes_scheme }}://127.0.0.1:{{ kubernetes_apiserver_port }} \
     --logtostderr=true
 Restart=on-failure

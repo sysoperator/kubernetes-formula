@@ -16,16 +16,13 @@ with context %}
 
 include:
   - debian/packages/ca-certificates
-{% if etcd.cluster.use_ssl %}
   - debian/packages/python3-m2crypto
   - debian/packages/python3-openssl
-{% endif %}
   - systemd/cmd
   - kubernetes/cmd
   - flannel/cmd
   - .dirs
 
-{% if etcd.cluster.use_ssl %}
 etcd-ca.crt:
   x509.pem_managed:
     - name: {{ etcd_ca_cert_path }}
@@ -77,32 +74,32 @@ etcd.crt:
     - public_key: {{ etcd_ssl_key_path }}
     - CN: {{ node_host }}
     - basicConstraints: "CA:FALSE"
-  {%- if node_role == 'master' %}
+{%- if node_role == 'master' %}
     - extendedKeyUsage: "clientAuth, serverAuth"
-  {%- else %}
+{%- else %}
     - extendedKeyUsage: "clientAuth"
-  {%- endif %}
+{%- endif %}
     - keyUsage: "nonRepudiation, digitalSignature, keyEncipherment"
-  {%- if node_role == 'master' %}
+{%- if node_role == 'master' %}
     - subjectAltName: "{% for peer in etcd_peers -%}
       IP:{{ peer['ip'] }}{% if not loop.last %}, {% endif %}
-    {%- endfor %}"
-  {%- else %}
+  {%- endfor %}"
+{%- else %}
     - subjectAltName: "IP:{{ node_ip4 }}"
-  {%- endif %}
+{%- endif %}
     - days_valid: {{ kubernetes_ssl_cert_days_valid }}
     - days_remaining: {{ kubernetes_ssl_cert_days_remaining }}
     - backup: True
     - require:
       - pkg: python3-m2crypto
-  {%- if salt['file.file_exists'](etcd_ssl_cert_path) %}
+{%- if salt['file.file_exists'](etcd_ssl_cert_path) %}
     - onfail:
       - tls: etcd.crt-validate
-  {%- endif %}
+{%- endif %}
     - watch_in:
-  {%- if node_role == 'master' %}
+{%- if node_role == 'master' %}
       - module: kube-apiserver-service-restart
-  {%- endif %}
+{%- endif %}
       - module: flannel-service-restart
 
 etcd.key:
@@ -111,17 +108,16 @@ etcd.key:
     - bits: 2048
     - verbose: False
     - mode: 600
-  {%- if node_role == 'master' %}
+{%- if node_role == 'master' %}
     - user: etcd
-  {%- endif %}
+{%- endif %}
     - require:
       - pkg: python3-m2crypto
-  {%- if node_role == 'master' %}
+{%- if node_role == 'master' %}
       - user: etcd-user
-  {%- endif %}
+{%- endif %}
     - require_in:
       - x509: etcd.crt
-{% endif %}
 
 etcd-download:
   archive.extracted:
@@ -206,10 +202,8 @@ etcd-service-running:
   service.running:
     - name: etcd
     - watch:
-  {%- if etcd.cluster.use_ssl %}
       - x509: etcd.crt
       - x509: etcd.key
-  {%- endif %}
       - file: etcd-systemd-unit-file
       - file: etcd
 {% endif %}

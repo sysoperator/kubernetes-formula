@@ -30,11 +30,9 @@ include:
     - name: /lib/systemd/system/{{ component }}.service
     - source: salt://kubernetes/files/systemd/system/{{ component }}.service.j2
     - template: jinja
-{% if kubernetes.k8s.use_ssl %}
     - require:
       - x509: kubernetes-ca.crt
       - x509: {{ component }}.crt
-{% endif %}
     - require_in:
       - service: {{ component }}-service-enable
     - watch_in:
@@ -73,10 +71,8 @@ include:
   service.running:
     - name: {{ component }}
     - watch:
-{% if kubernetes.k8s.use_ssl %}
       - x509: {{ component }}.crt
       - x509: {{ component }}.key
-{% endif %}
       - file: {{ component }}-systemd-unit-file
       - file: {{ component }}
 {% if salt['pkg.version_cmp'](kubernetes.source_version, 'v1.8.0') >= 0 %}
@@ -89,7 +85,6 @@ include:
       - service: kube-proxy-service-running
 
 {# Certs #}
-{%- if kubernetes.k8s.use_ssl %}
 {{ component }}.crt-validate:
   tls.valid_certificate:
     - name: {{ component_ssl_cert_path }}
@@ -117,10 +112,10 @@ include:
     - backup: True
     - require:
       - pkg: python3-m2crypto
-  {%- if salt['file.file_exists'](component_ssl_cert_path) %}
+{%- if salt['file.file_exists'](component_ssl_cert_path) %}
     - onfail:
       - tls: {{ component }}.crt-validate
-  {%- endif %}
+{%- endif %}
 
 {{ component }}.key:
   x509.private_key_managed:
@@ -132,5 +127,4 @@ include:
       - pkg: python3-m2crypto
     - require_in:
       - x509: {{ component }}.crt
-{%- endif %}
 {# EOF #}

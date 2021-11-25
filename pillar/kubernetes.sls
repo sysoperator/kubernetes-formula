@@ -5,11 +5,10 @@ kubernetes:
     source_version: v1.21.7
     install_dir: /usr/local/bin
     k8s:
-      etcdir: /etc/kubernetes
+      etc_dir: /etc/kubernetes
       apiserver:
         cluster_ip: 172.16.0.1
         secure_port: 6443
-        insecure: False
         log_debug_rbac: True
       cluster_dns:
         override_resolvconf: False
@@ -40,7 +39,6 @@ kubernetes:
         # Enable additional Admission Plugins:
         #- PodPreset
         #- ...
-      use_ssl: True
       enable_cert_issuer: False
       cert_issuer_duration: 720h
       cert_issuers:

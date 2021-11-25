@@ -10,7 +10,6 @@ kubernetes-etc-dir:
     - dir_mode: 755
     - user: root
     - makedirs: True
-{% if kubernetes.k8s.use_ssl %}
     - require_in:
       - file: kubernetes-ssl-dir
 
@@ -20,4 +19,3 @@ kubernetes-ssl-dir:
     - dir_mode: 755
     - user: root
     - makedirs: True
-{% endif %}

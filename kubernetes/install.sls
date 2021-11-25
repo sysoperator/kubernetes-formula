@@ -59,7 +59,6 @@ sa.pub:
       - x509: sa.key
 {% endif %}
 
-{% if kubernetes.k8s.use_ssl %}
 kubernetes-ca.crt:
   x509.pem_managed:
     - name: {{ kubernetes_ca_cert_path }}
@@ -86,23 +85,23 @@ kubernetes-ca.key:
       - pkg: python3-m2crypto
       - file: kubernetes-ssl-dir
     - require_in:
-  {%- if node_role == 'master' %}
+{%- if node_role == 'master' %}
       - x509: kube-apiserver.crt
       - x509: kube-controller-manager.crt
       - x509: kube-scheduler.crt
-  {%- endif %}
+{%- endif %}
       - x509: kubelet.crt
       - x509: kube-proxy.crt
     - order: first
 
-  {%- if kubernetes.k8s.enable_cert_issuer == False %}
+{%- if kubernetes.k8s.enable_cert_issuer == False %}
 kubernetes-ca.key-delete:
   file.absent:
     - name: {{ kubernetes_ca_key_path }}
     - order: last
-  {%- endif %}
+{%- endif %}
 
-  {%- if node_role == 'master' %}
+{%- if node_role == 'master' %}
 kubelet-client.crt-validate:
   tls.valid_certificate:
     - name: {{ kubelet_client_ssl_cert_path }}
@@ -130,10 +129,10 @@ kubelet-client.crt:
     - backup: True
     - require:
       - pkg: python3-m2crypto
-    {%- if salt['file.file_exists'](kubelet_client_ssl_cert_path) %}
+  {%- if salt['file.file_exists'](kubelet_client_ssl_cert_path) %}
     - onfail:
       - tls: kubelet-client.crt-validate
-    {%- endif %}
+  {%- endif %}
 
 kubelet-client.key:
   x509.private_key_managed:
@@ -146,7 +145,7 @@ kubelet-client.key:
     - require_in:
       - x509: kubelet-client.crt
 
-    {%- if salt['pkg.version_cmp'](kubernetes.source_version, 'v1.13.0') >= 0 %}
+  {%- if salt['pkg.version_cmp'](kubernetes.source_version, 'v1.13.0') >= 0 %}
 proxy-ca.crt:
   x509.pem_managed:
     - name: {{ proxy_ca_cert_path }}
@@ -221,9 +220,8 @@ proxy-client.key:
       - pkg: python3-m2crypto
     - require_in:
       - x509: proxy-client.crt
-    {%- endif %}
   {%- endif %}
-{% endif %}
+{%- endif %}
 
 {{ kubepackagedownload(package_dir, package_source, package_source_hash, package_flavor) }}
 

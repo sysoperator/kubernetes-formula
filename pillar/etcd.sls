@@ -13,7 +13,6 @@ etcd:
         - name: thinkpad-e495
           ip: 10.81.10.1
       initial_cluster: True
-      use_ssl: True
       ca_cert: |
           -----BEGIN CERTIFICATE-----
           MIIDKTCCAhGgAwIBAgIUA1xmfVl2S2Gzgpvf3RA1PqIW7l0wDQYJKoZIhvcNAQEL

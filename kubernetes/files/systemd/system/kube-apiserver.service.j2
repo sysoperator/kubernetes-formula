@@ -62,15 +62,10 @@ ExecStart={{ component_bin_path }} \
     --feature-gates=NodeLease=true \
 {%- endif %}
     --bind-address=0.0.0.0 \
-{%- if kubernetes.k8s.apiserver.insecure %}
-    --insecure-bind-address=0.0.0.0 \
-{%- endif %}
     --etcd-servers={{ etcd.endpoints|join(',') }} \
-{%- if etcd.cluster.use_ssl %}
     --etcd-cafile={{ etcd_ca_cert_path }} \
     --etcd-certfile={{ etcd_ssl_cert_path }} \
     --etcd-keyfile={{ etcd_ssl_key_path }} \
-{%- endif %}
 {%- if salt['pkg.version_cmp'](kubernetes.source_version, 'v1.6.0') < 0 %}
     --storage-backend=etcd2 \
     --storage-media-type=application/json \
@@ -81,15 +76,14 @@ ExecStart={{ component_bin_path }} \
 {%- endfor %} \
 {%- endif %}
     --logtostderr=true \
-    --service-cluster-ip-range={{ kubernetes_networks.svc_network_cidr }}
-{%- if kubernetes.k8s.use_ssl %} \
+    --service-cluster-ip-range={{ kubernetes_networks.svc_network_cidr }} \
     --tls-cert-file={{ component_ssl_cert_path }} \
     --tls-private-key-file={{ component_ssl_key_path }} \
     --client-ca-file={{ kubernetes_ca_cert_path }} \
     --secure-port={{ kubernetes_apiserver_port }} \
     --kubelet-client-certificate={{ kubelet_client_ssl_cert_path }} \
     --kubelet-client-key={{ kubelet_client_ssl_key_path }}
-  {%- if salt['pkg.version_cmp'](kubernetes.source_version, 'v1.13.0') >= 0 %} \
+{%- if salt['pkg.version_cmp'](kubernetes.source_version, 'v1.13.0') >= 0 %} \
     {#- FIX: Delete ConfigMap kube-system/extension-apiserver-authentication to allow regeneration with proper values #}
     --requestheader-client-ca-file={{ kubernetes_ssl_dir }}/proxy-ca.crt \
     --proxy-client-cert-file={{ kubernetes_ssl_dir }}/proxy-client.crt \
@@ -98,7 +92,6 @@ ExecStart={{ component_bin_path }} \
     --requestheader-extra-headers-prefix=X-Remote-Extra- \
     --requestheader-group-headers=X-Remote-Group \
     --requestheader-username-headers=X-Remote-User
-  {%- endif %}
 {%- endif %}
 Restart=on-failure
 Type=notify

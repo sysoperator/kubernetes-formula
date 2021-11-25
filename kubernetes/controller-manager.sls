@@ -29,10 +29,8 @@ include:
     - template: jinja
     - require:
       - x509: sa.key
-{% if kubernetes.k8s.use_ssl %}
       - x509: kubernetes-ca.crt
       - x509: {{ component }}.crt
-{% endif %}
     - require_in:
       - service: {{ component }}-service-enable
     - watch_in:
@@ -44,7 +42,6 @@ include:
     - require_in:
       - service: {{ component }}-service-running
 
-{% if kubernetes.k8s.use_ssl %}
 {{ component }}-kubeconfig:
   file.managed:
     - name: {{ kubernetes_etc_dir }}/controller-manager.kubeconfig
@@ -52,27 +49,23 @@ include:
     - template: jinja
     - context:
         component: {{ component }}
-{% endif %}
 
 {{ component }}-service-running:
   service.running:
     - name: {{ component }}
     - watch:
       - x509: sa.key
-{% if kubernetes.k8s.use_ssl %}
       - x509: kubernetes-ca.crt
-  {%- if kubernetes.k8s.enable_cert_issuer %}
+{%- if kubernetes.k8s.enable_cert_issuer %}
       - x509: kubernetes-ca.key
-  {%- endif %}
+{%- endif %}
       - x509: {{ component }}.crt
       - x509: {{ component }}.key
       - file: {{ component }}-kubeconfig
-{% endif %}
       - file: {{ component }}-systemd-unit-file
       - file: {{ component }}
 
 {# Certs #}
-{%- if kubernetes.k8s.use_ssl %}
 {{ component }}.crt-validate:
   tls.valid_certificate:
     - name: {{ component_ssl_cert_path }}
@@ -100,10 +93,10 @@ include:
     - backup: True
     - require:
       - pkg: python3-m2crypto
-  {%- if salt['file.file_exists'](component_ssl_cert_path) %}
+{%- if salt['file.file_exists'](component_ssl_cert_path) %}
     - onfail:
       - tls: {{ component }}.crt-validate
-  {%- endif %}
+{%- endif %}
 
 {{ component }}.key:
   x509.private_key_managed:
@@ -115,5 +108,4 @@ include:
       - pkg: python3-m2crypto
     - require_in:
       - x509: {{ component }}.crt
-{%- endif %}
 {# EOF #}

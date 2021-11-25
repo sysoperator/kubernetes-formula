@@ -1,15 +1,20 @@
 {% from "flannel/map.jinja" import flannel with context %}
 
+{% from "flannel/vars.jinja" import
+    package_source, package_source_hash,
+    flanneld_bin_path
+with context %}
+
 include:
   - systemd/cmd
 
 flanneld:
   file.managed:
-    - name: {{ flannel.install_dir }}/flanneld
+    - name: {{ flanneld_bin_path }}
     - mode: 755
     - user: root
-    - source: {{ flannel.source_url }}/{{ flannel.source_version }}/flanneld-{{ grains['osarch'] }}
-    - source_hash: {{ flannel.source_hash }}
+    - source: {{ package_source }}
+    - source_hash: {{ package_source_hash }}
     - require_in:
       - file: flannel-systemd-unit-file
 

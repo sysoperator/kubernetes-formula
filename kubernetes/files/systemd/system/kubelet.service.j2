@@ -30,7 +30,6 @@ ExecStart={{ component_bin_path }} \
 {%- if ('allow_privileged' in kubernetes.k8s.security) and (salt['pkg.version_cmp'](kubernetes.source_version, 'v1.15.0') < 0) %}
     --allow-privileged=true \
 {%- endif %}
-{%- if kubernetes.k8s.use_ssl %}
     --anonymous-auth=false \
 {%- if salt['pkg.version_cmp'](kubernetes.source_version, 'v1.13.0') >= 0 %}
     --authorization-mode=Webhook \
@@ -40,7 +39,6 @@ ExecStart={{ component_bin_path }} \
     --tls-cert-file={{ component_ssl_cert_path }} \
     --tls-private-key-file={{ component_ssl_key_path }} \
     --client-ca-file={{ kubernetes_ca_cert_path }} \
-{%- endif %}
     --chaos-chance=0.0 \
     --container-runtime=docker \
 {%- if node_role == 'master' %}

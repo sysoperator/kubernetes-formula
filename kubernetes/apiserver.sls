@@ -49,14 +49,12 @@ include:
   service.running:
     - name: {{ component }}
     - watch:
-{%- if kubernetes.k8s.use_ssl %}
       - x509: {{ component }}.crt
       - x509: {{ component }}.key
       - x509: kubelet-client.crt
       - x509: kubelet-client.key
       - x509: proxy-client.crt
       - x509: proxy-client.key
-{%- endif %}
       - x509: sa.key
       - file: {{ component }}-systemd-unit-file
       - file: {{ component }}
@@ -67,7 +65,6 @@ include:
       - service: kube-proxy-service-running
 
 {# Certs #}
-{%- if kubernetes.k8s.use_ssl %}
 {{ component }}.crt-validate:
   tls.valid_certificate:
     - name: {{ component_ssl_cert_path }}
@@ -95,10 +92,10 @@ include:
     - backup: True
     - require:
       - pkg: python3-m2crypto
-  {%- if salt['file.file_exists'](component_ssl_cert_path) %}
+{%- if salt['file.file_exists'](component_ssl_cert_path) %}
     - onfail:
       - tls: {{ component }}.crt-validate
-  {%- endif %}
+{%- endif %}
 
 {{ component }}.key:
   x509.private_key_managed:
@@ -110,5 +107,4 @@ include:
       - pkg: python3-m2crypto
     - require_in:
       - x509: {{ component }}.crt
-{%- endif %}
 {# EOF #}

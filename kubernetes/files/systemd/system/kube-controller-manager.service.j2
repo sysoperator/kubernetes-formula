@@ -20,22 +20,20 @@ After=kube-apiserver.service
 User=root
 ExecStart={{ component_bin_path }} \
     --service-account-private-key-file={{ kubernetes_sa_path }} \
-{%- if kubernetes.k8s.use_ssl %}
     --root-ca-file={{ kubernetes_ca_cert_path }} \
-  {%- if kubernetes.k8s.enable_cert_issuer %}
+{%- if kubernetes.k8s.enable_cert_issuer %}
     --cluster-signing-kube-apiserver-client-cert-file={{ kubernetes_ca_cert_path }} \
     --cluster-signing-kube-apiserver-client-key-file={{ kubernetes_ca_key_path }} \
     --cluster-signing-duration={{ kubernetes_cert_issuer_duration }} \
-    {%- if kubernetes_cert_issuers|length > 0 %}
-      {%- for issuer in kubernetes_cert_issuers %}
+  {%- if kubernetes_cert_issuers|length > 0 %}
+    {%- for issuer in kubernetes_cert_issuers %}
     --cluster-signing-{{ issuer }}-cert-file={{ kubernetes_ssl_dir }}/signers/{{ issuer }}/ca.crt \
     --cluster-signing-{{ issuer }}-key-file={{ kubernetes_ssl_dir }}/signers/{{ issuer }}/ca.key \
-      {%- endfor %}
-    {%- endif %}
+    {%- endfor %}
   {%- endif %}
+{%- endif %}
     --use-service-account-credentials \
     --kubeconfig={{ kubernetes_etc_dir }}/controller-manager.kubeconfig \
-{%- endif %}
     --enable-hostpath-provisioner=false \
     --pvclaimbinder-sync-period=15s \
     --master={{ kubernetes_scheme }}://127.0.0.1:{{ kubernetes_apiserver_port }} \

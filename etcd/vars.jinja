@@ -11,7 +11,7 @@
 
 {% set etcd_endpoints = etcd.endpoints %}
 {% set etcd_peers = etcd.cluster.peers %}
-{% set etcd_scheme = 'https' if etcd.cluster.use_ssl else 'http' %}
+{% set etcd_scheme = 'https' %}
 
 {% set etcd_etc_dir = etcd.etc_dir %}
 {% set etcd_ssl_dir = etcd_etc_dir + '/ssl' %}

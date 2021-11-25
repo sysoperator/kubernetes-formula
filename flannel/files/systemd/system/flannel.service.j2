@@ -1,8 +1,8 @@
 {% from "flannel/map.jinja" import flannel with context %}
-{% from "etcd/map.jinja" import etcd with context %}
-{% from "kubernetes/map.jinja" import kubernetes with context %}
 
-{% set flanneld_bin_path = flannel.install_dir + '/flanneld' %}
+{% from "flannel/vars.jinja" import
+    flanneld_bin_path
+with context %}
 
 {% from "kubernetes/vars.jinja" import
     cluster_networks,
@@ -29,21 +29,17 @@ RuntimeDirectory=flannel
 Environment=ETCDCTL_API=2
 ExecStartPre={{ etcdctl_bin_path }} \
     --endpoints {{ etcd_endpoints|join(',') }} \
-  {%- if etcd.cluster.use_ssl %}
     --ca-file {{ etcd_ca_cert_path }} \
     --cert-file {{ etcd_ssl_cert_path }} \
     --key-file {{ etcd_ssl_key_path }} \
-  {%- endif %}
     set /coreos.com/network/config \
     '{"Network": "{{ cluster_networks.pod_network_cidr }}", "Backend": {"Type": "vxlan", "VNI": 1}}'
 {%- endif %}
 ExecStart={{ flanneld_bin_path }} \
     -etcd-endpoints={{ etcd_endpoints|join(',') }} \
-{%- if etcd.cluster.use_ssl %}
     -etcd-cafile={{ etcd_ca_cert_path }} \
     -etcd-certfile={{ etcd_ssl_cert_path }} \
     -etcd-keyfile={{ etcd_ssl_key_path }} \
-{%- endif %}
     -subnet-file=/run/flannel/subnet.env \
     -ip-masq
 Restart=on-failure
