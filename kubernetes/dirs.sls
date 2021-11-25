@@ -4,18 +4,16 @@
     kubernetes_etc_dir, kubernetes_ssl_dir
 with context %}
 
-kubernetes-etc-dir:
+{{ kubernetes_etc_dir }}:
   file.directory:
-    - name: {{ kubernetes_etc_dir }}
     - dir_mode: 755
     - user: root
     - makedirs: True
     - require_in:
-      - file: kubernetes-ssl-dir
+      - file: {{ kubernetes_ssl_dir }}
 
-kubernetes-ssl-dir:
+{{ kubernetes_ssl_dir }}:
   file.directory:
-    - name: {{ kubernetes_ssl_dir }}
     - dir_mode: 755
     - user: root
     - makedirs: True

@@ -21,7 +21,7 @@ with context %}
       - archive: kubernetes-{{ package_flavor }}-download
 {% if is_service %}
     - require_in:
-      - file: {{ component }}-systemd-unit-file
+      - file: {{ component }}.service
 {% endif %}
 {% endmacro -%}
 
@@ -84,9 +84,9 @@ kubernetes-{{ package_flavor }}-download:
   {%- if name == 'etcd' %}
     - watch_in:
     {%- if node_role == 'master' %}
-      - module: kube-apiserver-service-restart
+      - module: kube-apiserver.service-restart
     {%- endif %}
-      - module: flannel-service-restart
+      - module: flannel.service-restart
   {%- endif %}
 {% endmacro %}
 

@@ -6,10 +6,10 @@
 {% from "kubernetes/vars.jinja" import
     cluster_nameservers, cluster_domain,
     node_role, node_ip4,
-    kubernetes_scheme, kubernetes_apiserver_port,
     kubernetes_etc_dir, kubernetes_ssl_dir,
     kubernetes_ca_cert_path,
-    component_ssl_cert_path, component_ssl_key_path
+    component_ssl_cert_path, component_ssl_key_path,
+	component_kubeconfig
 with context %}
 
 {% from "cni/vars.jinja" import
@@ -58,7 +58,7 @@ ExecStart={{ component_bin_path }} \
 #}
     --make-iptables-util-chains=false \
     --cpu-cfs-quota=false \
-    --kubeconfig={{ kubernetes_etc_dir }}/kubelet.kubeconfig \
+    --kubeconfig={{ component_kubeconfig }} \
     --cloud-provider="" \
     --cluster-dns={{ cluster_nameservers|join(',') }} \
     --cluster-domain={{ cluster_domain }} \

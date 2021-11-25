@@ -13,6 +13,7 @@ with context %}
     kubernetes_etc_dir,
     kubernetes_ssl_cert_days_valid, kubernetes_ssl_cert_days_remaining,
     kubernetes_ca_cert_path, kubernetes_ca_key_path,
+    kubernetes_sa_key_path, kubernetes_sa_pub_path,
     component_ssl_cert_path, component_ssl_key_path,
     component_source, component_source_hash
 with context %}
@@ -25,47 +26,47 @@ include:
 
 {{ kubecomponentbinary(component, component_source, component_source_hash, component_bin_path) }}
 
-{{ component }}-systemd-unit-file:
+{{ component }}.service:
   file.managed:
     - name: /lib/systemd/system/{{ component }}.service
     - source: salt://kubernetes/files/systemd/system/{{ component }}.service.j2
     - template: jinja
     - require:
-      - x509: sa.key
-      - x509: kubernetes-ca.crt
+      - x509: {{ kubernetes_sa_key_path }}
+      - x509: {{ kubernetes_ca_cert_path }}
       - x509: {{ component }}.crt
     - require_in:
-      - service: {{ component }}-service-enable
+      - service: {{ component }}.service-enabled
     - watch_in:
       - module: systemctl-reload
 
-{{ component }}-service-enable:
+{{ component }}.service-enabled:
   service.enabled:
     - name: {{ component }}
     - require_in:
-      - service: {{ component }}-service-running
+      - service: {{ component }}.service-running
 
-{{ component }}-kubeconfig:
+{{ component }}.conf:
   file.managed:
-    - name: {{ kubernetes_etc_dir }}/controller-manager.kubeconfig
+    - name: {{ kubernetes_etc_dir }}/controller-manager.conf
     - source: salt://kubernetes/files/kubeconfig.j2
     - template: jinja
     - context:
         component: {{ component }}
 
-{{ component }}-service-running:
+{{ component }}.service-running:
   service.running:
     - name: {{ component }}
     - watch:
-      - x509: sa.key
-      - x509: kubernetes-ca.crt
+      - x509: {{ kubernetes_sa_key_path }}
+      - x509: {{ kubernetes_ca_cert_path }}
 {%- if kubernetes.k8s.enable_cert_issuer %}
-      - x509: kubernetes-ca.key
+      - x509: {{ kubernetes_ca_key_path }}
 {%- endif %}
       - x509: {{ component }}.crt
       - x509: {{ component }}.key
-      - file: {{ component }}-kubeconfig
-      - file: {{ component }}-systemd-unit-file
+      - file: {{ component }}.conf
+      - file: {{ component }}.service
       - file: {{ component }}
 
 {{ kubepkicertvalid(component, component_ssl_cert_path, kubernetes_ssl_cert_days_remaining) }}

@@ -30,46 +30,46 @@ include:
 
 {{ kubecomponentbinary(component, component_source, component_source_hash, component_bin_path, package_flavor) }}
 
-{{ component }}-systemd-unit-file:
+{{ component }}.service:
   file.managed:
     - name: /lib/systemd/system/{{ component }}.service
     - source: salt://kubernetes/files/systemd/system/{{ component }}.service.j2
     - template: jinja
     - require:
-      - x509: kubernetes-ca.crt
+      - x509: {{ kubernetes_ca_cert_path }}
       - x509: {{ component }}.crt
     - require_in:
-      - service: {{ component }}-service-enable
+      - service: {{ component }}.service-enabled
     - watch_in:
       - module: systemctl-reload
 
-{{ component }}-service-enable:
+{{ component }}.service-enabled:
   service.enabled:
     - name: {{ component }}
     - require_in:
-      - service: {{ component }}-service-running
+      - service: {{ component }}.service-running
 
-{{ component }}-kubeconfig:
+{{ component }}.conf:
   file.managed:
-    - name: {{ kubernetes_etc_dir }}/proxy.kubeconfig
+    - name: {{ kubernetes_etc_dir }}/proxy.conf
     - source: salt://kubernetes/files/kubeconfig.j2
     - template: jinja
     - context:
         component: {{ component }}
 
-{{ component }}-service-running:
+{{ component }}.service-running:
   service.running:
     - name: {{ component }}
     - watch:
       - x509: {{ component }}.crt
       - x509: {{ component }}.key
-      - file: {{ component }}-systemd-unit-file
+      - file: {{ component }}.service
       - file: {{ component }}
-      - file: {{ component }}-kubeconfig
+      - file: {{ component }}.conf
     - require:
       - sysctl: net.ipv4.ip_forward
 {% if node_role == 'node' %}
-      - file: haproxy.cfg
+      - file: /etc/haproxy/haproxy.cfg
 {% endif %}
       - pkg: conntrack
 

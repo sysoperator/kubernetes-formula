@@ -33,8 +33,10 @@ with context %}
 {% set component_source = package_dir + '/bin/' + component %}
 {% set component_source_hash = kubernetes.source_url + '/' + kubernetes.source_version + '/bin/' + salt['grains.get']('kernel')|lower + '/' + salt['grains.get']('osarch') + '/' + component + '.sha512' %}
 
-{% set kubernetes_scheme = 'https' %}
+{% set kubernetes_scheme = 'https://' %}
+{% set kubernetes_apiserver_address = kubernetes.k8s.apiserver.default_address %}
 {% set kubernetes_apiserver_port = (kubernetes.k8s.apiserver.secure_port|string) %}
+{% set kubernetes_apiserver_url = kubernetes_scheme + kubernetes_apiserver_address + ':' + kubernetes_apiserver_port %}
 
 {% set kubernetes_networks = kubernetes.k8s.networks %}
 {% set kubernetes_runtime_config = kubernetes.k8s.runtime_config if kubernetes.k8s.runtime_config is not none else {} %}
@@ -43,29 +45,30 @@ with context %}
 {% set kubernetes_cert_issuer_duration = kubernetes.k8s.cert_issuer_duration if kubernetes.k8s.cert_issuer_duration is not none else '720h' %}
 
 {% set kubernetes_etc_dir = kubernetes.k8s.etc_dir %}
-{% set kubernetes_ssl_dir = kubernetes_etc_dir + '/ssl' %}
+{% set kubernetes_ssl_dir = kubernetes_etc_dir + kubernetes.k8s.ssl_dir %}
 
 {% set kubernetes_ssl_cert_days_valid = 365 %}
 {% set kubernetes_ssl_cert_days_remaining = 30 %}
 {% set kubernetes_ca_cert_path = kubernetes_ssl_dir + '/ca.crt' %}
 {% set kubernetes_ca_key_path = kubernetes_ssl_dir + '/ca.key' %}
-{% set kubernetes_sa_path = kubernetes_etc_dir + '/sa.key' %}
-{% set kubernetes_sa_pub_path = kubernetes_etc_dir + '/sa.pub' %}
+{% set kubernetes_sa_key_path = kubernetes_ssl_dir + '/sa.key' %}
+{% set kubernetes_sa_pub_path = kubernetes_ssl_dir + '/sa.pub' %}
 
 {% set kubelet_client_ssl_cert_path = kubernetes_ssl_dir + '/apiserver-kubelet-client.crt' %}
 {% set kubelet_client_ssl_key_path = kubernetes_ssl_dir + '/apiserver-kubelet-client.key' %}
 {% set kubelet_client_ssl_subject_CN = 'kube-apiserver-kubelet-client' %}
-{% set kubelet_client_ssl_subject_O  = 'system:masters' %}
+{% set kubelet_client_ssl_subject_O = None %}
 
-{% if salt['pkg.version_cmp'](kubernetes.source_version, 'v1.13.0') >= 0 %}
-  {% set proxy_ca_cert_path = kubernetes_ssl_dir + '/proxy-ca.crt' %}
-  {% set proxy_ca_key_path = kubernetes_ssl_dir + '/proxy-ca.key' %}
-  {% set proxy_client_ssl_cert_path = kubernetes_ssl_dir + '/proxy-client.crt' %}
-  {% set proxy_client_ssl_key_path = kubernetes_ssl_dir + '/proxy-client.key' %}
-  {% set proxy_client_ssl_subject_CN = 'proxy-client' %}
-{% endif %}
+{% set front_proxy_ca_cert_path = kubernetes_ssl_dir + '/front-proxy-ca.crt' %}
+{% set front_proxy_ca_key_path = kubernetes_ssl_dir + '/front-proxy-ca.key' %}
+{% set front_proxy_client_ssl_cert_path = kubernetes_ssl_dir + '/front-proxy-client.crt' %}
+{% set front_proxy_client_ssl_key_path = kubernetes_ssl_dir + '/front-proxy-client.key' %}
+{% set front_proxy_client_ssl_subject_CN = 'front-proxy-client' %}
+{% set front_proxy_client_ssl_subject_O = None %}
 
 {% set component_ssl_base_name = 'apiserver' if component == 'kube-apiserver' else component %}
 {% set component_ssl_base_path = kubernetes_ssl_dir + '/' +  component_ssl_base_name %}
 {% set component_ssl_cert_path = component_ssl_base_path + '.crt' %}
 {% set component_ssl_key_path  = component_ssl_base_path + '.key' %}
+{% set component_kubeconfig = kubernetes_etc_dir + '/' + component + '.conf' %}
+{% set component_kubeconfig = component_kubeconfig|replace('kube-', '') %}

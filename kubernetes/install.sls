@@ -8,14 +8,15 @@ with context %}
     cluster_nameservers, cluster_domain,
     node_role,
     package_flavor, package_dir, package_source, package_source_hash,
+    kubernetes_ssl_dir,
     kubernetes_ssl_cert_days_valid, kubernetes_ssl_cert_days_remaining,
     kubernetes_ca_cert_path, kubernetes_ca_key_path,
-    kubernetes_sa_path, kubernetes_sa_pub_path,
+    kubernetes_sa_key_path, kubernetes_sa_pub_path,
     kubelet_client_ssl_cert_path, kubelet_client_ssl_key_path,
     kubelet_client_ssl_subject_CN, kubelet_client_ssl_subject_O,
-    proxy_ca_cert_path, proxy_ca_key_path,
-    proxy_client_ssl_cert_path, proxy_client_ssl_key_path,
-    proxy_client_ssl_subject_CN, proxy_client_ssl_subject_O
+    front_proxy_ca_cert_path, front_proxy_ca_key_path,
+    front_proxy_client_ssl_cert_path, front_proxy_client_ssl_key_path,
+    front_proxy_client_ssl_subject_CN, front_proxy_client_ssl_subject_O
 with context %}
 
 include:
@@ -37,9 +38,8 @@ include:
   - .proxy
 
 {% if node_role == 'master' %}
-sa.key:
+{{ kubernetes_sa_key_path }}:
   x509.pem_managed:
-    - name: {{ kubernetes_sa_path }}
     - mode: 600
     - user: root
     - group: root
@@ -47,24 +47,22 @@ sa.key:
         {{ kubernetes.k8s.service_account_signing_key|indent(8) }}
     - require:
       - pkg: python3-m2crypto
-      - file: kubernetes-etc-dir
+      - file: {{ kubernetes_ssl_dir }}
     - order: first
 
-sa.pub:
+{{ kubernetes_sa_pub_path }}:
   file.managed:
-    - name: {{ kubernetes_sa_pub_path }}
     - mode: 644
     - user: root
     - group: root
     - contents: |
         {{ kubernetes.k8s.service_account_key|indent(8) }}
     - require:
-      - x509: sa.key
+      - x509: {{ kubernetes_sa_key_path }}
 {% endif %}
 
-kubernetes-ca.crt:
+{{ kubernetes_ca_cert_path }}:
   x509.pem_managed:
-    - name: {{ kubernetes_ca_cert_path }}
     - mode: 644
     - user: root
     - group: root
@@ -72,13 +70,12 @@ kubernetes-ca.crt:
         {{ kubernetes.k8s.ca_cert|indent(8) }}
     - require:
       - pkg: python3-m2crypto
-      - file: kubernetes-ssl-dir
+      - file: {{ kubernetes_ssl_dir }}
     - require_in:
-      - x509: kubernetes-ca.key
+      - x509: {{ kubernetes_ca_key_path }}
 
-kubernetes-ca.key:
+{{ kubernetes_ca_key_path }}:
   x509.pem_managed:
-    - name: {{ kubernetes_ca_key_path }}
     - mode: 600
     - user: root
     - group: root
@@ -86,7 +83,7 @@ kubernetes-ca.key:
         {{ kubernetes.k8s.ca_key|indent(8) }}
     - require:
       - pkg: python3-m2crypto
-      - file: kubernetes-ssl-dir
+      - file: {{ kubernetes_ssl_dir }}
     - require_in:
 {%- if node_role == 'master' %}
       - x509: kube-apiserver.crt
@@ -98,65 +95,62 @@ kubernetes-ca.key:
     - order: first
 
 {%- if kubernetes.k8s.enable_cert_issuer == False %}
-kubernetes-ca.key-delete:
+{{ kubernetes_ca_key_path }}-deleted:
   file.absent:
     - name: {{ kubernetes_ca_key_path }}
     - order: last
 {%- endif %}
 
 {%- if node_role == 'master' %}
-{{ kubepkicertvalid('kubelet-client', kubelet_client_ssl_cert_path, kubernetes_ssl_cert_days_remaining) }}
+{{ kubepkicertvalid('apiserver-kubelet-client', kubelet_client_ssl_cert_path, kubernetes_ssl_cert_days_remaining) }}
 
-{{ kubepkicert('kubelet-client', kubelet_client_ssl_cert_path, kubelet_client_ssl_key_path, kubernetes_ca_cert_path, kubernetes_ca_key_path, 'clientAuth', kubernetes_ssl_cert_days_valid, kubernetes_ssl_cert_days_remaining, kubelet_client_ssl_subject_CN, kubelet_client_ssl_subject_O) }}
+{{ kubepkicert('apiserver-kubelet-client', kubelet_client_ssl_cert_path, kubelet_client_ssl_key_path, kubernetes_ca_cert_path, kubernetes_ca_key_path, 'clientAuth', kubernetes_ssl_cert_days_valid, kubernetes_ssl_cert_days_remaining, kubelet_client_ssl_subject_CN, kubelet_client_ssl_subject_O) }}
 
-{{ kubepkikey('kubelet-client', kubelet_client_ssl_key_path) }}
+{{ kubepkikey('apiserver-kubelet-client', kubelet_client_ssl_key_path) }}
 
-proxy-ca.crt:
+{{ front_proxy_ca_cert_path }}:
   x509.pem_managed:
-    - name: {{ proxy_ca_cert_path }}
     - mode: 644
     - user: root
     - group: root
     - text: |
-        {{ kubernetes.k8s.proxy_ca_cert|indent(8) }}
+        {{ kubernetes.k8s.front_proxy_ca_cert|indent(8) }}
     - require:
       - pkg: python3-m2crypto
-      - file: kubernetes-ssl-dir
+      - file: {{ kubernetes_ssl_dir }}
     - require_in:
-      - x509: proxy-ca.key
+      - x509: {{ front_proxy_ca_key_path }}
 
-proxy-ca.key:
+{{ front_proxy_ca_key_path }}:
   x509.pem_managed:
-    - name: {{ proxy_ca_key_path }}
     - mode: 600
     - user: root
     - group: root
     - text: |
-        {{ kubernetes.k8s.proxy_ca_key|indent(8) }}
+        {{ kubernetes.k8s.front_proxy_ca_key|indent(8) }}
     - require:
       - pkg: python3-m2crypto
-      - file: kubernetes-ssl-dir
+      - file: {{ kubernetes_ssl_dir }}
     - require_in:
-      - x509: proxy-client.crt
+      - x509: front-proxy-client.crt
 
-proxy-ca.key-delete:
+{{ front_proxy_ca_key_path }}-deleted:
   file.absent:
-    - name: {{ proxy_ca_key_path }}
+    - name: {{ front_proxy_ca_key_path }}
     - order: last
 
-{{ kubepkicertvalid('proxy-client', proxy_client_ssl_cert_path, kubernetes_ssl_cert_days_remaining) }}
+{{ kubepkicertvalid('front-proxy-client', front_proxy_client_ssl_cert_path, kubernetes_ssl_cert_days_remaining) }}
 
-{{ kubepkicert('proxy-client', proxy_client_ssl_cert_path, proxy_client_ssl_key_path, proxy_ca_cert_path, proxy_ca_key_path, 'clientAuth', kubernetes_ssl_cert_days_valid, kubernetes_ssl_cert_days_remaining, proxy_client_ssl_subject_CN) }}
+{{ kubepkicert('front-proxy-client', front_proxy_client_ssl_cert_path, front_proxy_client_ssl_key_path, front_proxy_ca_cert_path, front_proxy_ca_key_path, 'clientAuth', kubernetes_ssl_cert_days_valid, kubernetes_ssl_cert_days_remaining, front_proxy_client_ssl_subject_CN) }}
 
-{{ kubepkikey('proxy-client', proxy_client_ssl_key_path) }}
+{{ kubepkikey('front-proxy-client', front_proxy_client_ssl_key_path) }}
 {%- endif %}
 
 {{ kubepackagedownload(package_dir, package_source, package_source_hash, package_flavor) }}
 
 {% if kubernetes.k8s.cluster_dns.override_resolvconf %}
-kubernetes-resolv.conf:
+/etc/resolv.conf:
   file.managed:
-    - name: /etc/resolv.conf
     - source: salt://kubernetes/files/resolv.conf.j2
     - template: jinja
     - context:

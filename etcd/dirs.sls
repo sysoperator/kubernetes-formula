@@ -4,18 +4,16 @@
     etcd_etc_dir, etcd_ssl_dir
 with context %}
 
-etcd-etc-dir:
+{{ etcd_etc_dir }}:
   file.directory:
-    - name: {{ etcd_etc_dir }}
     - dir_mode: 755
     - user: root
     - makedirs: True
     - require_in:
-      - file: etcd-ssl-dir
+      - file: {{ etcd_ssl_dir }}
 
-etcd-ssl-dir:
+{{ etcd_ssl_dir }}:
   file.directory:
-    - name: {{ etcd_ssl_dir }}
     - dir_mode: 755
     - user: root
     - makedirs: True

@@ -4,8 +4,9 @@
 {% set component_bin_path = kubernetes.install_dir + '/scheduler' %}
 
 {% from "kubernetes/vars.jinja" import
-    kubernetes_scheme, kubernetes_apiserver_port,
-    kubernetes_etc_dir
+    kubernetes_apiserver_url,
+    kubernetes_etc_dir,
+    component_kubeconfig
 with context %}
 
 [Unit]
@@ -16,8 +17,8 @@ After=kube-apiserver.service
 [Service]
 User=root
 ExecStart={{ component_bin_path }} \
-    --kubeconfig={{ kubernetes_etc_dir }}/scheduler.kubeconfig \
-    --master={{ kubernetes_scheme }}://127.0.0.1:{{ kubernetes_apiserver_port }} \
+    --kubeconfig={{ component_kubeconfig }} \
+    --master={{ kubernetes_apiserver_url }} \
     --logtostderr=true
 Restart=on-failure
 LimitNOFILE=65536

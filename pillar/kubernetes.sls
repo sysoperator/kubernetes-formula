@@ -6,8 +6,10 @@ kubernetes:
     install_dir: /usr/local/bin
     k8s:
       etc_dir: /etc/kubernetes
+      ssl_dir: /pki
       apiserver:
         cluster_ip: 172.16.0.1
+        default_address: 127.0.0.1
         secure_port: 6443
         log_debug_rbac: True
       cluster_dns:
@@ -166,7 +168,7 @@ kubernetes:
           t3v3UcVFG5dGfEq3kxVo5Fs1eEqio1OZibTZx4X2rNUe9fvi4bEOyzg0TXBnYHNQ
           0wIDAQAB
           -----END PUBLIC KEY-----
-      proxy_ca_cert: |
+      front_proxy_ca_cert: |
           -----BEGIN CERTIFICATE-----
           MIIDLTCCAhWgAwIBAgIUT8SyZR6l8cyZdM2fwzAWXGU7eLswDQYJKoZIhvcNAQEL
           BQAwJjERMA8GA1UECgwIUHJveHkgQ0ExETAPBgNVBAMMCHByb3h5LWNhMB4XDTIx
@@ -187,7 +189,7 @@ kubernetes:
           viNR2NREQBa86eAvWluYwlDbK7GzIrktQ+Q7vtyG/njjKF8dW333au0IJGAqs13b
           TQ==
           -----END CERTIFICATE-----
-      proxy_ca_key: |
+      front_proxy_ca_key: |
           -----BEGIN PGP MESSAGE-----
           
           hQIMA7gFvY0/3uAGARAAggJsWgzBhmAwYIEXhytokh9RkZt8oMagRKTICFGMSFom

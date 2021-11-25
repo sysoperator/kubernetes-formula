@@ -4,8 +4,9 @@
 {% set component_bin_path = kubernetes.install_dir + '/proxy' %}
 
 {% from "kubernetes/vars.jinja" import
-    kubernetes_scheme, kubernetes_apiserver_port,
-    kubernetes_etc_dir
+    kubernetes_apiserver_url,
+    kubernetes_etc_dir,
+    component_kubeconfig
 with context %}
 
 [Unit]
@@ -17,8 +18,8 @@ After=kube-apiserver.service flannel.service haproxy.service
 EnvironmentFile=-/run/flannel/subnet.env
 User=root
 ExecStart={{ component_bin_path }} \
-    --kubeconfig={{ kubernetes_etc_dir }}/proxy.kubeconfig \
-    --master={{ kubernetes_scheme }}://127.0.0.1:{{ kubernetes_apiserver_port }} \
+    --kubeconfig={{ component_kubeconfig }} \
+    --master={{ kubernetes_apiserver_url }} \
     --logtostderr=true \
     --cluster-cidr=${FLANNEL_NETWORK} \
     --proxy-mode=iptables

@@ -15,8 +15,9 @@ with context %}
     kubernetes_networks, kubernetes_runtime_config, kubernetes_admission_controllers,
     kubernetes_etc_dir, kubernetes_ssl_dir,
     kubernetes_ca_cert_path, kubernetes_ca_key_path,
-    kubernetes_sa_path, kubernetes_sa_pub_path,
+    kubernetes_sa_key_path, kubernetes_sa_pub_path,
     kubelet_client_ssl_cert_path, kubelet_client_ssl_key_path,
+    front_proxy_ca_cert_path, front_proxy_client_ssl_cert_path, front_proxy_client_ssl_key_path,
     component_ssl_cert_path, component_ssl_key_path
 with context %}
 
@@ -42,7 +43,7 @@ ExecStart={{ component_bin_path }} \
     --authorization-mode={% for mode in kubernetes.k8s.authorization_mode -%}
         {{ mode }}{% if not loop.last %},{% endif %}
 {%- endfor %} \
-    --service-account-{% if salt['pkg.version_cmp'](kubernetes.source_version, 'v1.20.0') >= 0 %}signing-{% endif %}key-file={{ kubernetes_sa_path }} \
+    --service-account-{% if salt['pkg.version_cmp'](kubernetes.source_version, 'v1.20.0') >= 0 %}signing-{% endif %}key-file={{ kubernetes_sa_key_path }} \
 {%- if salt['pkg.version_cmp'](kubernetes.source_version, 'v1.20.0') >= 0 %}
     --service-account-key-file={{ kubernetes_sa_pub_path }} \
     --service-account-issuer=https://{{ node_ip4 }}:6443 \
@@ -73,10 +74,10 @@ ExecStart={{ component_bin_path }} \
     --secure-port={{ kubernetes_apiserver_port }} \
     --kubelet-client-certificate={{ kubelet_client_ssl_cert_path }} \
     --kubelet-client-key={{ kubelet_client_ssl_key_path }} \
-    --requestheader-client-ca-file={{ kubernetes_ssl_dir }}/proxy-ca.crt \
-    --proxy-client-cert-file={{ kubernetes_ssl_dir }}/proxy-client.crt \
-    --proxy-client-key-file={{ kubernetes_ssl_dir }}/proxy-client.key \
-    --requestheader-allowed-names=proxy-client \
+    --requestheader-client-ca-file={{ front_proxy_ca_cert_path }} \
+    --proxy-client-cert-file={{ front_proxy_client_ssl_cert_path }} \
+    --proxy-client-key-file={{ front_proxy_client_ssl_key_path }} \
+    --requestheader-allowed-names=front-proxy-client \
     --requestheader-extra-headers-prefix=X-Remote-Extra- \
     --requestheader-group-headers=X-Remote-Group \
     --requestheader-username-headers=X-Remote-User

@@ -11,10 +11,12 @@
 
 {% set etcd_endpoints = etcd.endpoints %}
 {% set etcd_peers = etcd.cluster.peers %}
-{% set etcd_scheme = 'https' %}
+{% set etcd_scheme = 'https://' %}
 
 {% set etcd_etc_dir = etcd.etc_dir %}
 {% set etcd_ssl_dir = etcd_etc_dir + '/ssl' %}
+
+{% set etcd_data_dir = etcd.data_dir %}
 
 {% set etcd_ca_cert_path = etcd_ssl_dir + '/ca.crt' %}
 {% set etcd_ca_key_path = etcd_ssl_dir + '/ca.key' %}

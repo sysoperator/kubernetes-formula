@@ -14,6 +14,7 @@ with context %}
     package_dir, package_source, package_source_hash,
     etcd_peers,
     etcd_etc_dir, etcd_ssl_dir,
+    etcd_data_dir,
     etcd_ca_cert_path, etcd_ca_key_path,
     etcd_ssl_cert_path, etcd_ssl_key_path,
     etcd_bin_path, etcdctl_bin_path
@@ -34,34 +35,32 @@ include:
   - flannel/cmd
   - .dirs
 
-etcd-ca.crt:
+{{ etcd_ca_cert_path }}:
   x509.pem_managed:
-    - name: {{ etcd_ca_cert_path }}
     - mode: 644
     - user: root
     - text: |
         {{ etcd.cluster.ca_cert|indent(8) }}
     - require:
       - pkg: python3-m2crypto
-      - file: etcd-ssl-dir
+      - file: {{ etcd_ssl_dir }}
     - require_in:
-      - x509: etcd-ca.key
+      - x509: {{ etcd_ca_key_path }}
 
-etcd-ca.key:
+{{ etcd_ca_key_path }}:
   x509.pem_managed:
-    - name: {{ etcd_ca_key_path }}
     - mode: 600
     - user: root
     - text: |
         {{ etcd.cluster.ca_key|indent(8) }}
     - require:
       - pkg: python3-m2crypto
-      - file: etcd-ssl-dir
+      - file: {{ etcd_ssl_dir }}
     - require_in:
       - x509: etcd.crt
     - order: first
 
-etcd-ca.key-delete:
+{{ etcd_ca_key_path }}-delete:
   file.absent:
     - name: {{ etcd_ca_key_path }}
     - order: last
@@ -110,7 +109,7 @@ etcd:
     - source: {{ package_dir }}/etcd
     - force: True
     - require_in:
-      - file: etcd-systemd-unit-file
+      - file: etcd.service
   {%- if salt['file.file_exists'](etcd_bin_path) %}
     - onchanges:
   {%- else %}
@@ -128,10 +127,10 @@ etcd-user:
     - name: etcd
     - system: True
     - gid: etcd
-    - home: /var/local/etcd
+    - home: {{ etcd_data_dir }}
     - shell: /bin/false
 
-etcd-systemd-unit-file:
+etcd.service:
   file.managed:
     - name: /lib/systemd/system/etcd.service
     - source: salt://etcd/files/systemd/system/etcd.service.j2
@@ -140,23 +139,23 @@ etcd-systemd-unit-file:
       - user: etcd-user
   {%- if etcd.cluster.initial_cluster %}
     - require_in:
-      - service: etcd-service-enable
+      - service: etcd.service-enabled
   {%- endif %}
     - watch_in:
       - module: systemctl-reload
 
-etcd-service-enable:
+etcd.service-enabled:
   service.enabled:
     - name: etcd
     - require_in:
       - service: etcd-service-running
 
-etcd-service-running:
+etcd.service-running:
   service.running:
     - name: etcd
     - watch:
       - x509: etcd.crt
       - x509: etcd.key
-      - file: etcd-systemd-unit-file
+      - file: etcd.service
       - file: etcd
 {% endif %}
