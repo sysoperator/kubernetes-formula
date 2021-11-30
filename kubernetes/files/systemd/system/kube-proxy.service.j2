@@ -4,8 +4,6 @@
 {% set component_bin_path = kubernetes.install_dir + '/proxy' %}
 
 {% from "kubernetes/vars.jinja" import
-    kubernetes_apiserver_url,
-    kubernetes_etc_dir,
     component_kubeconfig
 with context %}
 
@@ -19,10 +17,14 @@ EnvironmentFile=-/run/flannel/subnet.env
 User=root
 ExecStart={{ component_bin_path }} \
     --kubeconfig={{ component_kubeconfig }} \
-    --master={{ kubernetes_apiserver_url }} \
-    --logtostderr=true \
+    --healthz-bind-address=127.0.0.1:10256 \
+    --metrics-bind-address=127.0.0.1:10249 \
     --cluster-cidr=${FLANNEL_NETWORK} \
-    --proxy-mode=iptables
+    --proxy-mode=iptables \
+{%- if kubernetes.k8s.log_debug %}
+    --v=2 \
+{%- endif %}
+    --logtostderr=true
 Restart=on-failure
 LimitNOFILE=65536
 

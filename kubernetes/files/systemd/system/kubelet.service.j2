@@ -6,10 +6,9 @@
 {% from "kubernetes/vars.jinja" import
     cluster_nameservers, cluster_domain,
     node_role, node_ip4,
-    kubernetes_etc_dir, kubernetes_ssl_dir,
     kubernetes_ca_cert_path,
     component_ssl_cert_path, component_ssl_key_path,
-	component_kubeconfig
+    component_kubeconfig
 with context %}
 
 {% from "cni/vars.jinja" import
@@ -28,13 +27,15 @@ After=flannel.service haproxy.service kube-proxy.service
 [Service]
 User=root
 ExecStart={{ component_bin_path }} \
-{%- if kubernetes.k8s.log_debug %}
-    --v=2 \
-{%- endif %}
+    --kubeconfig={{ component_kubeconfig }} \
+    --address={{ node_ip4 }} \
+    --port=10250 \
+    --read-only-port=0 \
+    --healthz-port=0 \
+    --node-ip={{ node_ip4 }} \
     --anonymous-auth=false \
     --authorization-mode=Webhook \
     --authentication-token-webhook=true \
-    --cert-dir={{ kubernetes_ssl_dir }} \
     --tls-cert-file={{ component_ssl_cert_path }} \
     --tls-private-key-file={{ component_ssl_key_path }} \
     --client-ca-file={{ kubernetes_ca_cert_path }} \
@@ -47,9 +48,6 @@ ExecStart={{ component_bin_path }} \
 {%- if node_role == 'node' %}
     --enable-controller-attach-detach=false \
 {%- endif %}
-    --node-ip={{ node_ip4 }} \
-    --address={{ node_ip4 }} \
-    --port=10250 \
     --network-plugin=cni \
     --cni-conf-dir={{ cni_etc_dir }} \
 {#-
@@ -58,10 +56,12 @@ ExecStart={{ component_bin_path }} \
 #}
     --make-iptables-util-chains=false \
     --cpu-cfs-quota=false \
-    --kubeconfig={{ component_kubeconfig }} \
     --cloud-provider="" \
     --cluster-dns={{ cluster_nameservers|join(',') }} \
     --cluster-domain={{ cluster_domain }} \
+{%- if kubernetes.k8s.log_debug %}
+    --v=2 \
+{%- endif %}
     --logtostderr=true
 Restart=on-failure
 LimitNOFILE=65536

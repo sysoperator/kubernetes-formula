@@ -29,16 +29,12 @@ After=network.target etcd.service flannel.service
 [Service]
 User=root
 ExecStart={{ component_bin_path }} \
-{%- if kubernetes.k8s.log_debug %}
-    --v=2 \
-{%- endif %}
-{%- if kubernetes.k8s.apiserver.log_debug_rbac %}
-    --vmodule=rbac*=5 \
-{%- endif %}
+    --bind-address=0.0.0.0 \
+    --secure-port={{ kubernetes_apiserver_port }} \
+    --advertise-address={{ node_ip4 }} \
 {%- if 'allow_privileged' in kubernetes.k8s.security %}
     --allow-privileged=true \
 {%- endif %}
-    --advertise-address={{ node_ip4 }} \
     --apiserver-count={{ etcd.endpoints|length }} \
     --authorization-mode={% for mode in kubernetes.k8s.authorization_mode -%}
         {{ mode }}{% if not loop.last %},{% endif %}
@@ -50,13 +46,12 @@ ExecStart={{ component_bin_path }} \
 {%- endif %}
     --service-account-lookup=true \
     --enable-admission-plugins=
-{%- if 'Node' in kubernetes.k8s.authorization_mode -%}NodeRestriction,{%- endif -%}NamespaceLifecycle,LimitRanger,ServiceAccount,ResourceQuota
+{%- if 'Node' in kubernetes.k8s.authorization_mode -%}NodeRestriction,{%- endif -%}NamespaceLifecycle,LimitRanger,ServiceAccount,DefaultStorageClass,ResourceQuota
 {%- if kubernetes_admission_controllers|length > 0 %}
   {%- for controller in kubernetes_admission_controllers -%}
   ,{{ controller }}
   {%- endfor %}
 {%- endif %} \
-    --bind-address=0.0.0.0 \
     --etcd-servers={{ etcd.endpoints|join(',') }} \
     --etcd-cafile={{ etcd_ca_cert_path }} \
     --etcd-certfile={{ etcd_ssl_cert_path }} \
@@ -66,12 +61,10 @@ ExecStart={{ component_bin_path }} \
         {{ resource }}{% if not loop.last %},{% endif %}
 {%- endfor %} \
 {%- endif %}
-    --logtostderr=true \
     --service-cluster-ip-range={{ kubernetes_networks.svc_network_cidr }} \
     --tls-cert-file={{ component_ssl_cert_path }} \
     --tls-private-key-file={{ component_ssl_key_path }} \
     --client-ca-file={{ kubernetes_ca_cert_path }} \
-    --secure-port={{ kubernetes_apiserver_port }} \
     --kubelet-client-certificate={{ kubelet_client_ssl_cert_path }} \
     --kubelet-client-key={{ kubelet_client_ssl_key_path }} \
     --requestheader-client-ca-file={{ front_proxy_ca_cert_path }} \
@@ -80,7 +73,14 @@ ExecStart={{ component_bin_path }} \
     --requestheader-allowed-names=front-proxy-client \
     --requestheader-extra-headers-prefix=X-Remote-Extra- \
     --requestheader-group-headers=X-Remote-Group \
-    --requestheader-username-headers=X-Remote-User
+    --requestheader-username-headers=X-Remote-User \
+{%- if kubernetes.k8s.log_debug %}
+    --v=2 \
+{%- endif %}
+{%- if kubernetes.k8s.apiserver.log_debug_rbac %}
+    --vmodule=rbac*=5 \
+{%- endif %}
+    --logtostderr=true
 Restart=on-failure
 Type=notify
 LimitNOFILE=65536

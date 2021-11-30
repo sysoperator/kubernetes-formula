@@ -4,8 +4,7 @@
 {% set component_bin_path = kubernetes.install_dir + '/controller-manager' %}
 
 {% from "kubernetes/vars.jinja" import
-    kubernetes_apiserver_url,
-    kubernetes_etc_dir, kubernetes_ssl_dir,
+    kubernetes_ssl_dir,
     kubernetes_ca_cert_path, kubernetes_ca_key_path,
     kubernetes_sa_key_path,
     kubernetes_cert_issuers,
@@ -21,8 +20,13 @@ After=kube-apiserver.service
 [Service]
 User=root
 ExecStart={{ component_bin_path }} \
-    --service-account-private-key-file={{ kubernetes_sa_key_path }} \
+    --kubeconfig={{ component_kubeconfig }} \
+    --bind-address=0.0.0.0 \
+    --secure-port=0 \
+    --port=0 \
     --root-ca-file={{ kubernetes_ca_cert_path }} \
+    --service-account-private-key-file={{ kubernetes_sa_key_path }} \
+    --use-service-account-credentials \
 {%- if kubernetes.k8s.enable_cert_issuer %}
     --cluster-signing-kube-apiserver-client-cert-file={{ kubernetes_ca_cert_path }} \
     --cluster-signing-kube-apiserver-client-key-file={{ kubernetes_ca_key_path }} \
@@ -34,11 +38,11 @@ ExecStart={{ component_bin_path }} \
     {%- endfor %}
   {%- endif %}
 {%- endif %}
-    --use-service-account-credentials \
-    --kubeconfig={{ component_kubeconfig }} \
     --enable-hostpath-provisioner=false \
     --pvclaimbinder-sync-period=15s \
-    --master={{ kubernetes_apiserver_url }} \
+{%- if kubernetes.k8s.log_debug %}
+    --v=2 \
+{%- endif %}
     --logtostderr=true
 Restart=on-failure
 LimitNOFILE=65536

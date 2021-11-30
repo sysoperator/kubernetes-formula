@@ -4,8 +4,6 @@
 {% set component_bin_path = kubernetes.install_dir + '/scheduler' %}
 
 {% from "kubernetes/vars.jinja" import
-    kubernetes_apiserver_url,
-    kubernetes_etc_dir,
     component_kubeconfig
 with context %}
 
@@ -18,7 +16,12 @@ After=kube-apiserver.service
 User=root
 ExecStart={{ component_bin_path }} \
     --kubeconfig={{ component_kubeconfig }} \
-    --master={{ kubernetes_apiserver_url }} \
+    --bind-address=0.0.0.0 \
+    --secure-port=0 \
+    --port=0 \
+{%- if kubernetes.k8s.log_debug %}
+    --v=2 \
+{%- endif %}
     --logtostderr=true
 Restart=on-failure
 LimitNOFILE=65536
