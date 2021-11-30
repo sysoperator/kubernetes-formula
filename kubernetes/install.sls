@@ -94,7 +94,7 @@ include:
       - x509: kube-proxy.crt
     - order: first
 
-{%- if kubernetes.k8s.enable_cert_issuer == False %}
+{%- if node_role == 'master' and kubernetes.k8s.enable_cert_issuer == False %}
 {{ kubernetes_ca_key_path }}-deleted:
   file.absent:
     - name: {{ kubernetes_ca_key_path }}
