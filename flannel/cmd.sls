@@ -1,6 +1,6 @@
 {% from "flannel/map.jinja" import flannel with context %}
 
-flannel-service.restart:
+flannel.service-restart:
   module.wait:
     - name: service.restart
     - m_name: flannel

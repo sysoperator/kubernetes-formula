@@ -148,7 +148,7 @@ etcd.service-enabled:
   service.enabled:
     - name: etcd
     - require_in:
-      - service: etcd-service-running
+      - service: etcd.service-running
 
 etcd.service-running:
   service.running:
