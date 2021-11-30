@@ -41,7 +41,7 @@ ExecStart={{ etcd_bin_path }} \
     --initial-cluster {% for peer in etcd_peers -%}
         {{ peer['name'] }}={{ etcd_scheme }}{{ peer['ip'] }}:2380{% if not loop.last %},{% endif %}
   {%- endfor %} \
-    --initial-advertise-peer-urls {{ etcd_scheme }}://{{ node_ip4 }}:2380 \
+    --initial-advertise-peer-urls {{ etcd_scheme }}{{ node_ip4 }}:2380 \
     --initial-cluster-state new
 {% endif %}
 Restart=on-failure
