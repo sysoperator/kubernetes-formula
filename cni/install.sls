@@ -12,7 +12,7 @@ include:
 
 {{ cni_etc_dir }}/10-bridge.conf:
   file.managed:
-    - source: salt://cni/files/cni/net.d/10-bridge.conf.j2
+    - source: salt://{{ tplroot }}/files/cni/net.d/10-bridge.conf.j2
     - template: jinja
     - context:
         tpldir: {{ tpldir }}

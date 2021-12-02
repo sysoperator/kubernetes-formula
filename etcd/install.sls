@@ -132,7 +132,7 @@ etcd-user:
 etcd.service:
   file.managed:
     - name: /lib/systemd/system/etcd.service
-    - source: salt://etcd/files/systemd/system/etcd.service.j2
+    - source: salt://{{ tplroot }}/files/systemd/system/etcd.service.j2
     - template: jinja
     - context:
         tpldir: {{ tpldir }}
