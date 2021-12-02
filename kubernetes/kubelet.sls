@@ -23,7 +23,7 @@ with context -%}
 with context -%}
 {%- from "cni/vars.jinja" import
     cni_etc_dir
-with context -%}
+-%}
 
 include:
   - debian/packages/curl
