@@ -1,14 +1,15 @@
-{% from "cni/map.jinja" import cni with context %}
+{%- set tplroot = tpldir.split('/')[0] -%}
+{%- from tplroot ~ "/map.jinja" import cni with context -%}
 
-{% set package_base_url = cni.source_url + '/' + cni.source_version %}
-{% set package_base_name = 'cni-plugins-' + salt['grains.get']('kernel')|lower + '-' + salt['grains.get']('osarch') + '-' + cni.source_version %}
-{% set package_dir = cni.install_dir %}
-{% set package_source = package_base_url + '/' + package_base_name + '.tgz' %}
-{% set package_source_hash = package_source + '.sha256' %}
+{%- set package_base_url = cni.source_url + '/' + cni.source_version -%}
+{%- set package_base_name = 'cni-plugins-' + salt['grains.get']('kernel')|lower + '-' + salt['grains.get']('osarch') + '-' + cni.source_version -%}
+{%- set package_dir = cni.install_dir -%}
+{%- set package_source = package_base_url + '/' + package_base_name + '.tgz' -%}
+{%- set package_source_hash = package_source + '.sha256' -%}
 
-{% set cni_etc_dir = cni.cni.etc_dir %}
-{% set cni_plugins_dir = package_dir %}
-{% set cni_data_dir = cni.cni.data_dir %}
+{%- set cni_etc_dir = cni.cni.etc_dir -%}
+{%- set cni_plugins_dir = package_dir -%}
+{%- set cni_data_dir = cni.cni.data_dir -%}
 
-{% set cni_network_name = cni.cni.network_name %}
-{% set cni_bridge_name = cni.cni.bridge_name %}
+{%- set cni_network_name = cni.cni.network_name -%}
+{%- set cni_bridge_name = cni.cni.bridge_name -%}

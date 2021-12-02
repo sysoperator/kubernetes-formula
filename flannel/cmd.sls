@@ -1,4 +1,5 @@
-{% from "flannel/map.jinja" import flannel with context %}
+{%- set tplroot = tpldir.split('/')[0] %}
+{%- from tplroot ~ "/map.jinja" import flannel with context -%}
 
 flannel.service-restart:
   module.wait:

@@ -1,11 +1,10 @@
-{% from "kubernetes/map.jinja" import kubernetes with context %}
-
-{% set component = 'kube-proxy' %}
-{% set component_bin_path = kubernetes.install_dir + '/proxy' %}
-
-{% from "kubernetes/vars.jinja" import
+{%- from tplroot ~ "/map.jinja" import kubernetes with context -%}
+{%- set component = 'kube-proxy' -%}
+{%- set component_bin_path = kubernetes.install_dir + '/proxy' -%}
+{%- from tplroot ~ "/vars.jinja" import
+    k8s,
     component_kubeconfig
-with context %}
+with context -%}
 
 [Unit]
 Description=Kubernetes Proxy
@@ -21,7 +20,7 @@ ExecStart={{ component_bin_path }} \
     --metrics-bind-address=127.0.0.1:10249 \
     --cluster-cidr=${FLANNEL_NETWORK} \
     --proxy-mode=iptables \
-{%- if kubernetes.k8s.log_debug %}
+{%- if k8s.log_debug %}
     --v=2 \
 {%- endif %}
     --logtostderr=true

@@ -1,8 +1,8 @@
-{% from "etcd/map.jinja" import etcd with context %}
-
-{% from "etcd/vars.jinja" import
+{%- set tplroot = tpldir.split('/')[0] %}
+{%- from tplroot ~ "/map.jinja" import etcd with context -%}
+{%- from tplroot ~ "/vars.jinja" import
     etcd_etc_dir, etcd_ssl_dir
-with context %}
+with context -%}
 
 {{ etcd_etc_dir }}:
   file.directory:

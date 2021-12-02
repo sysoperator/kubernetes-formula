@@ -1,17 +1,10 @@
-{% from "kubernetes/map.jinja" import kubernetes with context %}
-{% from "etcd/map.jinja" import etcd with context %}
-
-{% from "etcd/vars.jinja" import
-    etcd_ca_cert_path,
-    etcd_ssl_cert_path, etcd_ssl_key_path
-with context %}
-
-{% set component = 'kube-apiserver' %}
-{% set component_bin_path = kubernetes.install_dir + '/apiserver' %}
-
-{% from "kubernetes/vars.jinja" import
+{%- from tplroot ~ "/map.jinja" import kubernetes with context -%}
+{%- set component = 'kube-apiserver' -%}
+{%- set component_bin_path = kubernetes.install_dir + '/apiserver' -%}
+{%- from tplroot ~ "/vars.jinja" import
+    k8s,
     node_ip4,
-    kubernetes_scheme, kubernetes_apiserver_port,
+    apiserver_port,
     kubernetes_networks, kubernetes_runtime_config, kubernetes_admission_controllers,
     kubernetes_etc_dir, kubernetes_ssl_dir,
     kubernetes_ca_cert_path, kubernetes_ca_key_path,
@@ -19,7 +12,12 @@ with context %}
     kubelet_client_ssl_cert_path, kubelet_client_ssl_key_path,
     front_proxy_ca_cert_path, front_proxy_client_ssl_cert_path, front_proxy_client_ssl_key_path,
     component_ssl_cert_path, component_ssl_key_path
-with context %}
+with context -%}
+{%- from "etcd/vars.jinja" import
+    etcd_endpoints,
+    etcd_ca_cert_path,
+    etcd_ssl_cert_path, etcd_ssl_key_path
+-%}
 
 [Unit]
 Description=Kubernetes API Server
@@ -30,13 +28,13 @@ After=network.target etcd.service flannel.service
 User=root
 ExecStart={{ component_bin_path }} \
     --bind-address=0.0.0.0 \
-    --secure-port={{ kubernetes_apiserver_port }} \
+    --secure-port={{ apiserver_port }} \
     --advertise-address={{ node_ip4 }} \
-{%- if 'allow_privileged' in kubernetes.k8s.security %}
+{%- if 'allow_privileged' in k8s.security %}
     --allow-privileged=true \
 {%- endif %}
-    --apiserver-count={{ etcd.endpoints|length }} \
-    --authorization-mode={% for mode in kubernetes.k8s.authorization_mode -%}
+    --apiserver-count={{ etcd_endpoints|length }} \
+    --authorization-mode={% for mode in k8s.authorization_mode -%}
         {{ mode }}{% if not loop.last %},{% endif %}
 {%- endfor %} \
     --service-account-{% if salt['pkg.version_cmp'](kubernetes.source_version, 'v1.20.0') >= 0 %}signing-{% endif %}key-file={{ kubernetes_sa_key_path }} \
@@ -46,13 +44,13 @@ ExecStart={{ component_bin_path }} \
 {%- endif %}
     --service-account-lookup=true \
     --enable-admission-plugins=
-{%- if 'Node' in kubernetes.k8s.authorization_mode -%}NodeRestriction,{%- endif -%}NamespaceLifecycle,LimitRanger,ServiceAccount,DefaultStorageClass,ResourceQuota
+{%- if 'Node' in k8s.authorization_mode -%}NodeRestriction,{%- endif -%}NamespaceLifecycle,LimitRanger,ServiceAccount,DefaultStorageClass,ResourceQuota
 {%- if kubernetes_admission_controllers|length > 0 %}
   {%- for controller in kubernetes_admission_controllers -%}
   ,{{ controller }}
   {%- endfor %}
 {%- endif %} \
-    --etcd-servers={{ etcd.endpoints|join(',') }} \
+    --etcd-servers={{ etcd_endpoints|join(',') }} \
     --etcd-cafile={{ etcd_ca_cert_path }} \
     --etcd-certfile={{ etcd_ssl_cert_path }} \
     --etcd-keyfile={{ etcd_ssl_key_path }} \
@@ -74,10 +72,10 @@ ExecStart={{ component_bin_path }} \
     --requestheader-extra-headers-prefix=X-Remote-Extra- \
     --requestheader-group-headers=X-Remote-Group \
     --requestheader-username-headers=X-Remote-User \
-{%- if kubernetes.k8s.log_debug %}
+{%- if k8s.log_debug %}
     --v=2 \
 {%- endif %}
-{%- if kubernetes.k8s.apiserver.log_debug_rbac %}
+{%- if k8s.apiserver.log_debug_rbac %}
     --vmodule=rbac*=5 \
 {%- endif %}
     --logtostderr=true

@@ -1,4 +1,5 @@
-{% from "kubernetes/map.jinja" import kubernetes with context %}
+{%- set tplroot = tpldir.split('/')[0] -%}
+{%- from tplroot ~ "/map.jinja" import kubernetes with context -%}
 
 kube-apiserver.service-restart:
   module.wait:

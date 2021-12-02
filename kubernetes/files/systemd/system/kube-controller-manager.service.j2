@@ -1,16 +1,15 @@
-{% from "kubernetes/map.jinja" import kubernetes with context %}
-
-{% set component = 'kube-controller-manager' %}
-{% set component_bin_path = kubernetes.install_dir + '/controller-manager' %}
-
-{% from "kubernetes/vars.jinja" import
+{%- from tplroot ~ "/map.jinja" import kubernetes with context -%}
+{%- set component = 'kube-controller-manager' -%}
+{%- set component_bin_path = kubernetes.install_dir + '/controller-manager' -%}
+{%- from tplroot ~ "/vars.jinja" import
+    k8s,
     kubernetes_ssl_dir,
     kubernetes_ca_cert_path, kubernetes_ca_key_path,
     kubernetes_sa_key_path,
     kubernetes_cert_issuers,
     kubernetes_cert_issuer_duration,
     component_kubeconfig
-with context %}
+with context -%}
 
 [Unit]
 Description=Kubernetes Controller Manager
@@ -27,7 +26,7 @@ ExecStart={{ component_bin_path }} \
     --root-ca-file={{ kubernetes_ca_cert_path }} \
     --service-account-private-key-file={{ kubernetes_sa_key_path }} \
     --use-service-account-credentials \
-{%- if kubernetes.k8s.enable_cert_issuer %}
+{%- if k8s.enable_cert_issuer %}
     --cluster-signing-kube-apiserver-client-cert-file={{ kubernetes_ca_cert_path }} \
     --cluster-signing-kube-apiserver-client-key-file={{ kubernetes_ca_key_path }} \
     --cluster-signing-duration={{ kubernetes_cert_issuer_duration }} \
@@ -40,7 +39,7 @@ ExecStart={{ component_bin_path }} \
 {%- endif %}
     --enable-hostpath-provisioner=false \
     --pvclaimbinder-sync-period=15s \
-{%- if kubernetes.k8s.log_debug %}
+{%- if k8s.log_debug %}
     --v=2 \
 {%- endif %}
     --logtostderr=true

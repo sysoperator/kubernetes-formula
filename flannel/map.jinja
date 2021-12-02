@@ -1,6 +1,6 @@
-{% set flannel = salt['grains.filter_by']({
+{%- set flannel = salt['grains.filter_by']({
   'Debian': {
   },
   'Ubuntu': {
   },
-}, grain='os', merge=salt['pillar.get']('flannel:lookup')) %}
+}, grain='os', merge=salt['pillar.get']('flannel:lookup')) -%}

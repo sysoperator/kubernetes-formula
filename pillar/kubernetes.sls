@@ -7,23 +7,23 @@ kubernetes:
     k8s:
       etc_dir: /etc/kubernetes
       ssl_dir: /pki
+      manifests_dir: /manifests
       apiserver:
         cluster_ip: 172.16.0.1
         default_address: 127.0.0.1
-        secure_port: 6443
+        default_secure_port: 6443
         log_debug_rbac: True
       cluster_dns:
         override_resolvconf: False
-        nameservers:
-          - 8.8.8.8
         domain: internal
         cluster_domain: cluster.local
         search:
+          # Search suffixes as list, e.g.:
+          #- foo.bar.com
+          #- baz.com
           - service
-          # Additional search entries
-          #- 1st entry
-          #- 2nd entry
-          #- ...
+        nameservers:
+          - 8.8.8.8
       networks:
         pod_network_cidr: 172.16.128.0/17
         svc_network_cidr: 172.16.0.0/20
@@ -41,12 +41,13 @@ kubernetes:
         # Enable additional Admission Plugins:
         #- PodPreset
         #- ...
-      enable_cert_issuer: False
+      enable_cert_issuer: True
       cert_issuer_duration: 720h
       cert_issuers:
         # Cert issuers:
+        - legacy-unknown
         #- ...
-      log_debug: False
+      log_debug: True
       ca_cert: |
           -----BEGIN CERTIFICATE-----
           MIIDUTCCAjmgAwIBAgIUHrLxO6rc1J7q1Qqr1/lyTjPqAncwDQYJKoZIhvcNAQEL

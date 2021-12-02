@@ -1,17 +1,14 @@
-{% from "etcd/map.jinja" import etcd with context %}
-
-{% set etcd_bin_path = etcd.install_dir + '/etcd' %}
-
-{% from "kubernetes/vars.jinja" import
-    node_host, node_ip4
-with context %}
-
-{% from "etcd/vars.jinja" import
-    etcd_peers, etcd_scheme,
-	etcd_data_dir,
+{%- from tplroot ~ "/map.jinja" import etcd with context -%}
+{%- from tplroot ~ "/vars.jinja" import
+    etcd_peers, etcd_default_scheme,
+    etcd_data_dir,
     etcd_ca_cert_path,
-    etcd_ssl_cert_path, etcd_ssl_key_path
-with context %}
+    etcd_ssl_cert_path, etcd_ssl_key_path,
+    etcd_bin_path
+with context -%}
+{%- from "kubernetes/vars.jinja" import
+    node_host, node_ip4
+-%}
 
 [Unit]
 Description=etcd key-value store
@@ -39,7 +36,7 @@ ExecStart={{ etcd_bin_path }} \
     --peer-key-file {{ etcd_ssl_key_path }} \
     --initial-cluster-token {{ etcd.cluster.name }} \
     --initial-cluster {% for peer in etcd_peers -%}
-        {{ peer['name'] }}={{ etcd_scheme }}{{ peer['ip'] }}:2380{% if not loop.last %},{% endif %}
+        {{ peer['name'] }}={{ etcd_default_scheme }}{{ peer['ip'] }}:2380{% if not loop.last %},{% endif %}
   {%- endfor %} \
     --initial-advertise-peer-urls {{ etcd_scheme }}{{ node_ip4 }}:2380 \
     --initial-cluster-state new

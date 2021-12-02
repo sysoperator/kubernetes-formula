@@ -1,24 +1,24 @@
-{% from "kubernetes/map.jinja" import kubernetes with context %}
-{% from "kubernetes/macros.jinja" import
-    kubecomponentbinary,
-    kubepkicertvalid, kubepkicert, kubepkikey
-with context %}
-
-{% set component = 'kube-proxy' %}
-{% set component_bin_path = kubernetes.install_dir + '/proxy' %}
-
-{% from "kubernetes/vars.jinja" import
+{%- set tplroot = tpldir.split('/')[0] -%}
+{%- from tplroot ~ "/map.jinja" import kubernetes with context -%}
+{%- set component = 'kube-proxy' -%}
+{%- set component_bin_path = kubernetes.install_dir + '/proxy' -%}
+{%- from tplroot ~ "/vars.jinja" import
     node_role,
     package_flavor,
-    kubernetes_etc_dir,
+    apiserver_url,
     kubernetes_ssl_cert_days_valid, kubernetes_ssl_cert_days_remaining,
     kubernetes_ca_cert_path, kubernetes_ca_key_path,
     component_ssl_cert_path, component_ssl_key_path,
-    component_source, component_source_hash
-with context %}
-
-{% set component_ssl_subject_CN = 'system:' + component %}
-{% set component_ssl_subject_O  = 'system:node-proxier' %}
+    component_source, component_source_hash,
+    component_kubeconfig
+with context -%}
+{%- set component_ssl_subject_CN = 'system:' + component -%}
+{%- set component_ssl_subject_O  = 'system:node-proxier' -%}
+{%- from tplroot ~ "/macros.jinja" import
+    kubeconfig,
+    kubecomponentbinary,
+    kubepkicertvalid, kubepkicert, kubepkikey
+with context -%}
 
 include:
   - systemd/cmd
@@ -33,8 +33,11 @@ include:
 {{ component }}.service:
   file.managed:
     - name: /lib/systemd/system/{{ component }}.service
-    - source: salt://kubernetes/files/systemd/system/{{ component }}.service.j2
+    - source: salt://{{ tplroot }}/files/systemd/system/{{ component }}.service.j2
     - template: jinja
+    - context:
+        tpldir: {{ tpldir }}
+        tplroot: {{ tplroot }}
     - require:
       - x509: {{ kubernetes_ca_cert_path }}
       - x509: {{ component }}.crt
@@ -49,13 +52,10 @@ include:
     - require_in:
       - service: {{ component }}.service-running
 
-{{ component }}.conf:
+{{ component_kubeconfig }}:
   file.managed:
-    - name: {{ kubernetes_etc_dir }}/proxy.conf
-    - source: salt://kubernetes/files/kubeconfig.j2
-    - template: jinja
-    - context:
-        component: {{ component }}
+    - contents: |
+        {{ kubeconfig(component, apiserver_url, kubernetes_ca_cert_path, component_ssl_cert_path, component_ssl_key_path)|indent(8) }}
 
 {{ component }}.service-running:
   service.running:
@@ -63,9 +63,9 @@ include:
     - watch:
       - x509: {{ component }}.crt
       - x509: {{ component }}.key
+      - file: {{ component_kubeconfig }}
       - file: {{ component }}.service
       - file: {{ component }}
-      - file: {{ component }}.conf
     - require:
       - sysctl: net.ipv4.ip_forward
 {% if node_role == 'node' %}

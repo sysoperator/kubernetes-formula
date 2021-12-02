@@ -1,26 +1,31 @@
-{% from "kubernetes/map.jinja" import kubernetes with context %}
-{% from "kubernetes/macros.jinja" import
-    kubepackagedownload,
-    kubepkicertvalid, kubepkicert, kubepkikey
-with context %}
-
-{% from "kubernetes/vars.jinja" import
-    cluster_nameservers, cluster_domain,
+{%- set tplroot = tpldir.split('/')[0] -%}
+{%- from tplroot ~ "/vars.jinja" import
+    k8s,
+    cluster_dns,
     node_role,
     package_flavor, package_dir, package_source, package_source_hash,
+    apiserver_url,
     kubernetes_ssl_dir,
     kubernetes_ssl_cert_days_valid, kubernetes_ssl_cert_days_remaining,
     kubernetes_ca_cert_path, kubernetes_ca_key_path,
     kubernetes_sa_key_path, kubernetes_sa_pub_path,
     kubelet_client_ssl_cert_path, kubelet_client_ssl_key_path,
     kubelet_client_ssl_subject_CN, kubelet_client_ssl_subject_O,
+    kube_admin_kubeconfig_dir, kube_admin_kubeconfig,
+    kube_admin_ssl_cert_path, kube_admin_ssl_key_path,
+    kube_admin_ssl_subject_CN, kube_admin_ssl_subject_O,
     front_proxy_ca_cert_path, front_proxy_ca_key_path,
     front_proxy_client_ssl_cert_path, front_proxy_client_ssl_key_path,
     front_proxy_client_ssl_subject_CN, front_proxy_client_ssl_subject_O
-with context %}
+with context -%}
+{%- from tplroot ~ "/macros.jinja" import
+    kubeconfig,
+    kubepackagedownload,
+    kubepkicertvalid, kubepkicert, kubepkikey
+with context -%}
 
 include:
-{% if kubernetes.k8s.cluster_dns.override_resolvconf %}
+{% if cluster_dns.override_resolvconf %}
   - debian/dhclient/nodnsupdate
 {% endif %}
   - debian/packages/ca-certificates
@@ -44,7 +49,7 @@ include:
     - user: root
     - group: root
     - text: |
-        {{ kubernetes.k8s.service_account_signing_key|indent(8) }}
+        {{ k8s.service_account_signing_key|indent(8) }}
     - require:
       - pkg: python3-m2crypto
       - file: {{ kubernetes_ssl_dir }}
@@ -56,7 +61,7 @@ include:
     - user: root
     - group: root
     - contents: |
-        {{ kubernetes.k8s.service_account_key|indent(8) }}
+        {{ k8s.service_account_key|indent(8) }}
     - require:
       - x509: {{ kubernetes_sa_key_path }}
 {% endif %}
@@ -67,7 +72,7 @@ include:
     - user: root
     - group: root
     - text: |
-        {{ kubernetes.k8s.ca_cert|indent(8) }}
+        {{ k8s.ca_cert|indent(8) }}
     - require:
       - pkg: python3-m2crypto
       - file: {{ kubernetes_ssl_dir }}
@@ -80,7 +85,7 @@ include:
     - user: root
     - group: root
     - text: |
-        {{ kubernetes.k8s.ca_key|indent(8) }}
+        {{ k8s.ca_key|indent(8) }}
     - require:
       - pkg: python3-m2crypto
       - file: {{ kubernetes_ssl_dir }}
@@ -89,12 +94,14 @@ include:
       - x509: kube-apiserver.crt
       - x509: kube-controller-manager.crt
       - x509: kube-scheduler.crt
+      - x509: apiserver-kubelet-client.crt
+      - x509: kube-admin.crt
 {%- endif %}
       - x509: kubelet.crt
       - x509: kube-proxy.crt
     - order: first
 
-{%- if node_role == 'node' or kubernetes.k8s.enable_cert_issuer == False %}
+{%- if node_role == 'node' or k8s.enable_cert_issuer == False %}
 {{ kubernetes_ca_key_path }}-deleted:
   file.absent:
     - name: {{ kubernetes_ca_key_path }}
@@ -108,13 +115,30 @@ include:
 
 {{ kubepkikey('apiserver-kubelet-client', kubelet_client_ssl_key_path) }}
 
+{{ kube_admin_kubeconfig }}:
+  file.managed:
+    - mode: 600
+    - user: root
+    - group: root
+    - contents: |
+        {{ kubeconfig('kube-admin', apiserver_url, kubernetes_ca_cert_path, kube_admin_ssl_cert_path, kube_admin_ssl_key_path)|indent(8) }}
+    - require:
+      - file: {{ kube_admin_kubeconfig_dir }}
+      - x509: kube-admin.crt
+
+{{ kubepkicertvalid('kube-admin', kube_admin_ssl_cert_path, kubernetes_ssl_cert_days_remaining) }}
+
+{{ kubepkicert('kube-admin', kube_admin_ssl_cert_path, kube_admin_ssl_key_path, kubernetes_ca_cert_path, kubernetes_ca_key_path, 'clientAuth', kubernetes_ssl_cert_days_valid, kubernetes_ssl_cert_days_remaining, kube_admin_ssl_subject_CN, kube_admin_ssl_subject_O) }}
+
+{{ kubepkikey('kube-admin', kube_admin_ssl_key_path) }}
+
 {{ front_proxy_ca_cert_path }}:
   x509.pem_managed:
     - mode: 644
     - user: root
     - group: root
     - text: |
-        {{ kubernetes.k8s.front_proxy_ca_cert|indent(8) }}
+        {{ k8s.front_proxy_ca_cert|indent(8) }}
     - require:
       - pkg: python3-m2crypto
       - file: {{ kubernetes_ssl_dir }}
@@ -127,7 +151,7 @@ include:
     - user: root
     - group: root
     - text: |
-        {{ kubernetes.k8s.front_proxy_ca_key|indent(8) }}
+        {{ k8s.front_proxy_ca_key|indent(8) }}
     - require:
       - pkg: python3-m2crypto
       - file: {{ kubernetes_ssl_dir }}
@@ -148,14 +172,13 @@ include:
 
 {{ kubepackagedownload(package_dir, package_source, package_source_hash, package_flavor) }}
 
-{% if kubernetes.k8s.cluster_dns.override_resolvconf %}
+{% if cluster_dns.override_resolvconf %}
 /etc/resolv.conf:
   file.managed:
-    - source: salt://kubernetes/files/resolv.conf.j2
+    - source: salt://{{ tplroot }}//files/resolv.conf.j2
     - template: jinja
     - context:
-        cluster_nameservers: {{ cluster_nameservers }}
-        cluster_domain: {{ cluster_domain }}
+        tplroot: {{ tplroot }}
     - require:
       - file: dhclient-nodnsupdate
     - require_in:

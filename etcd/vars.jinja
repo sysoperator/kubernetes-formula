@@ -1,25 +1,26 @@
-{% from "etcd/map.jinja" import etcd with context %}
+{%- set tplroot = tpldir.split('/')[0] -%}
+{%- from tplroot ~ "/map.jinja" import etcd with context -%}
 
-{% set package_base_url = etcd.source_url + '/' + etcd.source_version %}
-{% set package_base_name = 'etcd-' + etcd.source_version + '-' + salt['grains.get']('kernel')|lower + '-' + salt['grains.get']('osarch') %}
-{% set package_dir = '/tmp/' + package_base_name %}
-{% set package_source = package_base_url + '/' + package_base_name + '.tar.gz' %}
-{% set package_source_hash = package_base_url + '/SHA256SUMS' %}
+{%- set package_base_url = etcd.source_url + '/' + etcd.source_version -%}
+{%- set package_base_name = 'etcd-' + etcd.source_version + '-' + salt['grains.get']('kernel')|lower + '-' + salt['grains.get']('osarch') -%}
+{%- set package_dir = '/tmp/' + package_base_name -%}
+{%- set package_source = package_base_url + '/' + package_base_name + '.tar.gz' -%}
+{%- set package_source_hash = package_base_url + '/SHA256SUMS' -%}
 
-{% set etcd_bin_path = etcd.install_dir + '/etcd' %}
-{% set etcdctl_bin_path = etcd.install_dir + '/etcdctl' %}
+{%- set etcd_bin_path = etcd.install_dir + '/etcd' -%}
+{%- set etcdctl_bin_path = etcd.install_dir + '/etcdctl' -%}
 
-{% set etcd_endpoints = etcd.endpoints %}
-{% set etcd_peers = etcd.cluster.peers %}
-{% set etcd_scheme = 'https://' %}
+{%- set etcd_endpoints = etcd.endpoints -%}
+{%- set etcd_peers = etcd.cluster.peers -%}
+{%- set etcd_default_scheme = 'https://' -%}
 
-{% set etcd_etc_dir = etcd.etc_dir %}
-{% set etcd_ssl_dir = etcd_etc_dir + '/ssl' %}
+{%- set etcd_etc_dir = etcd.etc_dir -%}
+{%- set etcd_ssl_dir = etcd_etc_dir + '/ssl' -%}
 
-{% set etcd_data_dir = etcd.data_dir %}
+{%- set etcd_data_dir = etcd.data_dir -%}
 
-{% set etcd_ca_cert_path = etcd_ssl_dir + '/ca.crt' %}
-{% set etcd_ca_key_path = etcd_ssl_dir + '/ca.key' %}
+{%- set etcd_ca_cert_path = etcd_ssl_dir + '/ca.crt' -%}
+{%- set etcd_ca_key_path = etcd_ssl_dir + '/ca.key' -%}
 
-{% set etcd_ssl_cert_path = etcd_ssl_dir + '/etcd.crt' %}
-{% set etcd_ssl_key_path  = etcd_ssl_dir + '/etcd.key' %}
+{%- set etcd_ssl_cert_path = etcd_ssl_dir + '/etcd.crt' -%}
+{%- set etcd_ssl_key_path  = etcd_ssl_dir + '/etcd.key' -%}

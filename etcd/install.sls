@@ -1,16 +1,6 @@
-{% from "etcd/map.jinja" import etcd with context %}
-
-{% from "kubernetes/macros.jinja" import
-    kubepkicertvalid, kubepkicert, kubepkikey,
-    generatesanfrompeers
-with context %}
-
-{% from "kubernetes/vars.jinja" import
-    node_role, node_host, node_ip4,
-    kubernetes_ssl_cert_days_valid, kubernetes_ssl_cert_days_remaining
-with context %}
-
-{% from "etcd/vars.jinja" import
+{%- set tplroot = tpldir.split('/')[0] %}
+{%- from tplroot ~ "/map.jinja" import etcd with context -%}
+{%- from tplroot ~ "/vars.jinja" import
     package_dir, package_source, package_source_hash,
     etcd_peers,
     etcd_etc_dir, etcd_ssl_dir,
@@ -18,13 +8,22 @@ with context %}
     etcd_ca_cert_path, etcd_ca_key_path,
     etcd_ssl_cert_path, etcd_ssl_key_path,
     etcd_bin_path, etcdctl_bin_path
-with context %}
-
-{% set etcd_user = 'etcd' if node_role == 'master' else '' %}
-{% set etcd_ssl_key_usage = 'clientAuth, serverAuth' if node_role == 'master' else 'clientAuth' %}
-{% set etcd_ssl_subject_CN = node_host %}
-{% set etcd_ssl_subject_O = None %}
-{% set etcd_ssl_subject_SAN = generatesanfrompeers(etcd_peers) if node_role == 'master' else 'IP:' + node_ip4 %}
+with context -%}
+{%- from "kubernetes/vars.jinja" import
+    node_role, node_host, node_ip4,
+    kubernetes_ssl_cert_days_valid, kubernetes_ssl_cert_days_remaining
+-%}
+{%- set etcd_user = 'etcd' if node_role == 'master' else '' -%}
+{%- set etcd_ssl_key_usage = 'clientAuth, serverAuth' if node_role == 'master' else 'clientAuth' -%}
+{%- set etcd_ssl_subject_CN = node_host -%}
+{%- set etcd_ssl_subject_O = None -%}
+{%- from "kubernetes/macros.jinja" import
+    generatesanfrompeers
+-%}
+{%- set etcd_ssl_subject_SAN = generatesanfrompeers(etcd_peers) if node_role == 'master' else 'IP:' + node_ip4 -%}
+{%- from "kubernetes/macros.jinja" import
+    kubepkicertvalid, kubepkicert, kubepkikey
+-%}
 
 include:
   - debian/packages/ca-certificates
@@ -135,6 +134,9 @@ etcd.service:
     - name: /lib/systemd/system/etcd.service
     - source: salt://etcd/files/systemd/system/etcd.service.j2
     - template: jinja
+    - context:
+        tpldir: {{ tpldir }}
+        tplroot: {{ tplroot }}
     - require:
       - user: etcd-user
   {%- if etcd.cluster.initial_cluster %}

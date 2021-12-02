@@ -1,9 +1,9 @@
-{% from "flannel/map.jinja" import flannel with context %}
-
-{% from "flannel/vars.jinja" import
+{%- set tplroot = tpldir.split('/')[0] %}
+{%- from tplroot ~ "/map.jinja" import flannel with context -%}
+{%- from tplroot ~ "/vars.jinja" import
     package_source, package_source_hash,
     flanneld_bin_path
-with context %}
+with context -%}
 
 include:
   - systemd/cmd
@@ -21,8 +21,11 @@ flanneld:
 flannel.service:
   file.managed:
     - name: /lib/systemd/system/flannel.service
-    - source: salt://flannel/files/systemd/system/flannel.service.j2
+    - source: salt://{{ tplroot }}/files/systemd/system/flannel.service.j2
     - template: jinja
+    - context:
+        tpldir: {{ tpldir }}
+        tplroot: {{ tplroot }}
     - require_in:
       - service: flannel.service-enabled
       - file: docker-systemd-drop-in

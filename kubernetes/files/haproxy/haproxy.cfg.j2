@@ -1,11 +1,11 @@
-{%- from "kubernetes/map.jinja" import kubernetes with context %}
-{%- from "etcd/map.jinja" import etcd with context %}
+{%- from tplroot ~ "/map.jinja" import kubernetes with context -%}
+{%- from tplroot ~ "/vars.jinja" import
+    apiserver_hostport
+with context -%}
+{%- from "etcd/vars.jinja" import
+    etcd_peers
+-%}
 
-{%- from "kubernetes/vars.jinja" import
-    kubernetes_apiserver_port
-with context %}
-
-{%- set bind = '127.0.0.1:' + kubernetes_apiserver_port %}
 global
 	log /dev/log local0
 	log /dev/log local1 notice
@@ -51,7 +51,7 @@ defaults
 
 frontend kube-apiserver
 	mode tcp
-	bind {{ bind }}
+	bind {{ apiserver_hostport }}
 	default_backend kube-apiserver
 
 backend kube-apiserver
@@ -59,6 +59,6 @@ backend kube-apiserver
 	balance roundrobin
 	option tcp-check
 	option log-health-checks
-{%- for peer in etcd.cluster.peers %}
-	server {{ peer['name'] }} {{ peer['ip'] }}:{{ kubernetes_apiserver_port }} weight 1 maxconn 4096 check fall 3 rise 2
+{%- for peer in etcd_peers %}
+	server {{ peer['name'] }} {{ peer['ip'] }}:{{ apiserver_port }} weight 1 maxconn 4096 check fall 3 rise 2
 {%- endfor %}

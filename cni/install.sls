@@ -1,9 +1,9 @@
-{% from "cni/map.jinja" import cni with context %}
-
-{% from "cni/vars.jinja" import
+{%- set tplroot = tpldir.split('/')[0] -%}
+{%- from tplroot ~ "/map.jinja" import cni with context -%}
+{%- from tplroot ~ "/vars.jinja" import
     package_source, package_source_hash,
     cni_etc_dir, cni_plugins_dir
-with context %}
+with context -%}
 
 include:
   - debian/packages/ca-certificates
@@ -14,6 +14,9 @@ include:
   file.managed:
     - source: salt://cni/files/cni/net.d/10-bridge.conf.j2
     - template: jinja
+    - context:
+        tpldir: {{ tpldir }}
+        tplroot: {{ tplroot }}
     - require:
       - file: {{ cni_etc_dir }}
 

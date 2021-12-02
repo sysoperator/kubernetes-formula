@@ -1,10 +1,10 @@
-{% from "kubernetes/map.jinja" import kubernetes with context %}
-
-{% from "kubernetes/vars.jinja" import
+{%- set tplroot = tpldir.split('/')[0] -%}
+{%- from tplroot ~ "/map.jinja" import kubernetes with context -%}
+{%- from tplroot ~ "/vars.jinja" import
     node_role
-with context %}
+with context -%}
 
-{%- macro kubecomponentbinary(component, component_source, component_source_hash, component_bin_path, package_flavor='server', is_service=True) %}
+{%- macro kubecomponentbinary(component, component_source, component_source_hash, component_bin_path, package_flavor='server', is_service=True) -%}
 {{ component }}:
   file.managed:
     - name: {{ component_bin_path }}
@@ -23,9 +23,9 @@ with context %}
     - require_in:
       - file: {{ component }}.service
 {% endif %}
-{% endmacro -%}
+{%- endmacro -%}
 
-{%- macro kubepackagedownload(package_dir, package_source, package_source_hash, package_flavor='server') %}
+{%- macro kubepackagedownload(package_dir, package_source, package_source_hash, package_flavor='server') -%}
 kubernetes-{{ package_flavor }}-download:
   archive.extracted:
     - name: {{ package_dir }}
@@ -40,9 +40,9 @@ kubernetes-{{ package_flavor }}-download:
     - if_missing: {{ package_dir }}
     - require:
       - pkg: ca-certificates
-{% endmacro %}
+{% endmacro -%}
 
-{%- macro kubepkicertvalid(name, cert_path, days_remaining=30) %}
+{%- macro kubepkicertvalid(name, cert_path, days_remaining=30) -%}
 {{ name }}.crt-valid:
   tls.valid_certificate:
     - name: {{ cert_path }}
@@ -51,9 +51,9 @@ kubernetes-{{ package_flavor }}-download:
       - pkg: python3-openssl
     - onlyif:
       - test -f {{ cert_path }}
-{% endmacro %}
+{%- endmacro -%}
 
-{%- macro kubepkicert(name, cert_path, key_path, ca_path, ca_key_path, key_usage='clientAuth', days_valid=365, days_remaining=30, subject_CN=None, subject_O=None, subject_SAN=None) %}
+{%- macro kubepkicert(name, cert_path, key_path, ca_path, ca_key_path, key_usage='clientAuth', days_valid=365, days_remaining=30, subject_CN=None, subject_O=None, subject_SAN=None) -%}
 {{ name }}.crt:
   x509.certificate_managed:
     - name: {{ cert_path }}
@@ -88,9 +88,9 @@ kubernetes-{{ package_flavor }}-download:
     {%- endif %}
       - module: flannel.service-restart
   {%- endif %}
-{% endmacro %}
+{%- endmacro -%}
 
-{%- macro kubepkikey(name, key_path, key_owner=None) %}
+{%- macro kubepkikey(name, key_path, key_owner=None) -%}
 {{ name }}.key:
   x509.private_key_managed:
     - name: {{ key_path }}
@@ -107,10 +107,31 @@ kubernetes-{{ package_flavor }}-download:
   {%- endif %}
     - require_in:
       - x509: {{ name }}.crt
-{% endmacro %}
+{%- endmacro -%}
 
-{%- macro generatesanfrompeers(peers) %}
+{%- macro generatesanfrompeers(peers) -%}
   {%- for peer in peers -%}
     IP:{{ peer['ip'] }}{% if not loop.last %}, {% endif %}
   {%- endfor %}
-{% endmacro %}
+{%- endmacro -%}
+
+{%- macro kubeconfig(user, apiserver, ca_cert_path, client_cert_path, client_key_path) -%}
+apiVersion: v1
+kind: Config
+clusters:
+- cluster:
+    server: {{ apiserver }}
+    certificate-authority: {{ ca_cert_path }}
+  name: local
+contexts:
+- context:
+    cluster: local
+    user: {{ user }}
+  name: local
+current-context: local
+users:
+  - name: {{ user }}
+    user:
+      client-certificate: {{ client_cert_path }}
+      client-key: {{ client_key_path }}
+{%- endmacro -%}

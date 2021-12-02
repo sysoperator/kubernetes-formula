@@ -1,19 +1,17 @@
-{% from "kubernetes/map.jinja" import kubernetes with context %}
-
-{% set component = 'kubelet' %}
-{% set component_bin_path = kubernetes.install_dir + '/kubelet' %}
-
-{% from "kubernetes/vars.jinja" import
-    cluster_nameservers, cluster_domain,
+{%- from tplroot ~ "/map.jinja" import kubernetes with context -%}
+{%- set component = 'kubelet' -%}
+{%- set component_bin_path = kubernetes.install_dir + '/kubelet' -%}
+{%- from tplroot ~ "/vars.jinja" import
+    k8s,
+    cluster_dns_cluster_domain, cluster_dns_nameservers,
     node_role, node_ip4,
     kubernetes_ca_cert_path,
     component_ssl_cert_path, component_ssl_key_path,
     component_kubeconfig
-with context %}
-
-{% from "cni/vars.jinja" import
-    cni_etc_dir
 with context -%}
+{%- from "cni/vars.jinja" import
+    cni_etc_dir
+-%}
 
 [Unit]
 Description=Kubernetes Kubelet
@@ -22,7 +20,7 @@ Documentation=https://github.com/kubernetes/kubernetes
 After=kube-apiserver.service kube-proxy.service
 {% else %}
 After=flannel.service haproxy.service kube-proxy.service
-{% endif %}
+{% endif -%}
 
 [Service]
 User=root
@@ -31,7 +29,6 @@ ExecStart={{ component_bin_path }} \
     --address={{ node_ip4 }} \
     --port=10250 \
     --read-only-port=0 \
-    --healthz-port=0 \
     --node-ip={{ node_ip4 }} \
     --anonymous-auth=false \
     --authorization-mode=Webhook \
@@ -57,9 +54,9 @@ ExecStart={{ component_bin_path }} \
     --make-iptables-util-chains=false \
     --cpu-cfs-quota=false \
     --cloud-provider="" \
-    --cluster-dns={{ cluster_nameservers|join(',') }} \
-    --cluster-domain={{ cluster_domain }} \
-{%- if kubernetes.k8s.log_debug %}
+    --cluster-domain={{ cluster_dns_cluster_domain }} \
+    --cluster-dns={{ cluster_dns_nameservers|join(',') }} \
+{%- if k8s.log_debug %}
     --v=2 \
 {%- endif %}
     --logtostderr=true
