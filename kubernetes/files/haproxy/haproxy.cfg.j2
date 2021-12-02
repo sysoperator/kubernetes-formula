@@ -1,6 +1,6 @@
 {%- from tplroot ~ "/map.jinja" import kubernetes with context -%}
 {%- from tplroot ~ "/vars.jinja" import
-    apiserver_hostport
+    apiserver_port, apiserver_hostport
 with context -%}
 {%- from "etcd/vars.jinja" import
     etcd_peers
