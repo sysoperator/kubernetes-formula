@@ -13,7 +13,9 @@ with context -%}
     - makedirs: True
     - require_in:
       - file: {{ kubernetes_ssl_dir }}
+{% if node_role == 'master' %}
       - file: {{ kubernetes_manifests_dir }}
+{% endif %}
 
 {{ kubernetes_ssl_dir }}:
   file.directory:
