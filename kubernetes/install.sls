@@ -19,11 +19,13 @@
     front_proxy_client_ssl_subject_CN, front_proxy_client_ssl_subject_O
 with context -%}
 {%- from tplroot ~ "/macros.jinja" import
-    Python3_M2Crypto,
     kubeconfig,
     kubepackagedownload,
     kubepkicertvalid, kubepkicert, kubepkikey
 with context -%}
+{%- from "debian/packages/macros.jinja" import
+    Python3_M2Crypto
+-%}
 
 include:
 {% if cluster_dns.override_resolvconf %}
