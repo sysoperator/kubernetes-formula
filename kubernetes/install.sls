@@ -19,6 +19,7 @@
     front_proxy_client_ssl_subject_CN, front_proxy_client_ssl_subject_O
 with context -%}
 {%- from tplroot ~ "/macros.jinja" import
+    Python3_M2Crypto,
     kubeconfig,
     kubepackagedownload,
     kubepkicertvalid, kubepkicert, kubepkikey
@@ -51,7 +52,7 @@ include:
     - text: |
         {{ k8s.service_account_signing_key|indent(8) }}
     - require:
-      - pkg: python3-m2crypto
+{{ Python3_M2Crypto() }}
       - file: {{ kubernetes_ssl_dir }}
     - order: first
 
@@ -74,7 +75,7 @@ include:
     - text: |
         {{ k8s.ca_cert|indent(8) }}
     - require:
-      - pkg: python3-m2crypto
+{{ Python3_M2Crypto() }}
       - file: {{ kubernetes_ssl_dir }}
     - require_in:
       - x509: {{ kubernetes_ca_key_path }}
@@ -87,7 +88,7 @@ include:
     - text: |
         {{ k8s.ca_key|indent(8) }}
     - require:
-      - pkg: python3-m2crypto
+{{ Python3_M2Crypto() }}
       - file: {{ kubernetes_ssl_dir }}
     - require_in:
 {%- if node_role == 'master' %}
@@ -140,7 +141,7 @@ include:
     - text: |
         {{ k8s.front_proxy_ca_cert|indent(8) }}
     - require:
-      - pkg: python3-m2crypto
+{{ Python3_M2Crypto() }}
       - file: {{ kubernetes_ssl_dir }}
     - require_in:
       - x509: {{ front_proxy_ca_key_path }}
@@ -153,7 +154,7 @@ include:
     - text: |
         {{ k8s.front_proxy_ca_key|indent(8) }}
     - require:
-      - pkg: python3-m2crypto
+{{ Python3_M2Crypto() }}
       - file: {{ kubernetes_ssl_dir }}
     - require_in:
       - x509: front-proxy-client.crt

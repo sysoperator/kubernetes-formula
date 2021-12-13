@@ -3,6 +3,9 @@
 {%- from tplroot ~ "/vars.jinja" import
     node_role
 with context -%}
+{%- from "debian/packages/macros.jinja" import
+    Python3_M2Crypto
+-%}
 
 {%- macro kubecomponentbinary(component, component_source, component_source_hash, component_bin_path, package_flavor='server', is_service=True) -%}
 {{ component }}:
@@ -13,16 +16,16 @@ with context -%}
     - source: {{ component_source }}
     - source_hash: {{ component_source_hash }}
     - follow_symlinks: False
-{% if salt['file.file_exists'](component_bin_path) %}
+  {%- if salt['file.file_exists'](component_bin_path) %}
     - onchanges:
-{% else %}
+  {%- else %}
     - require:
-{% endif %}
+  {%- endif %}
       - archive: kubernetes-{{ package_flavor }}-download
-{% if is_service %}
+  {%- if is_service %}
     - require_in:
       - file: {{ component }}.service
-{% endif %}
+  {%- endif %}
 {%- endmacro -%}
 
 {%- macro kubepackagedownload(package_dir, package_source, package_source_hash, package_flavor='server') -%}
@@ -76,7 +79,7 @@ kubernetes-{{ package_flavor }}-download:
     - days_remaining: {{ days_remaining }}
     - backup: True
     - require:
-      - pkg: python3-m2crypto
+{{ Python3_M2Crypto() }}
   {%- if salt['file.file_exists'](cert_path) %}
     - onfail:
       - tls: {{ name }}.crt-valid
@@ -101,7 +104,7 @@ kubernetes-{{ package_flavor }}-download:
     - user: {{ key_owner }}
   {%- endif %}
     - require:
-      - pkg: python3-m2crypto
+{{ Python3_M2Crypto() }}
   {%- if key_owner %}
       - user: {{ key_owner }}-user
   {%- endif %}

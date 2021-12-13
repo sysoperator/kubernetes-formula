@@ -23,6 +23,7 @@ with context -%}
 include:
   - systemd/cmd
   - debian/packages/conntrack
+  - debian/packages/ipset
   - debian/sysctl/ip-forward
 {% if node_role == 'node' %}
   - .haproxy
@@ -72,6 +73,7 @@ include:
       - file: /etc/haproxy/haproxy.cfg
 {% endif %}
       - pkg: conntrack
+      - pkg: ipset
 
 {{ kubepkicertvalid(component, component_ssl_cert_path, kubernetes_ssl_cert_days_remaining) }}
 
