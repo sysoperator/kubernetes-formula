@@ -24,6 +24,9 @@ with context -%}
 {%- from "kubernetes/macros.jinja" import
     kubepkicertvalid, kubepkicert, kubepkikey
 -%}
+{%- from "debian/packages/macros.jinja" import
+    Python3_M2Crypto
+-%}
 
 include:
   - debian/packages/ca-certificates
@@ -41,7 +44,7 @@ include:
     - text: |
         {{ etcd.cluster.ca_cert|indent(8) }}
     - require:
-      - pkg: python3-m2crypto
+{{ Python3_M2Crypto() }}
       - file: {{ etcd_ssl_dir }}
     - require_in:
       - x509: {{ etcd_ca_key_path }}
@@ -53,7 +56,7 @@ include:
     - text: |
         {{ etcd.cluster.ca_key|indent(8) }}
     - require:
-      - pkg: python3-m2crypto
+{{ Python3_M2Crypto() }}
       - file: {{ etcd_ssl_dir }}
     - require_in:
       - x509: etcd.crt
