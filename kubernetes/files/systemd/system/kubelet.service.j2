@@ -57,8 +57,10 @@ ExecStart={{ component_bin_path }} \
     --cluster-domain={{ cluster_dns_cluster_domain }} \
     --cluster-dns={{ cluster_dns_nameservers|join(',') }} \
 {%- if k8s.log_debug %}
-    --v=2 \
-{%- endif %}
+    --v=4
+{%- else %}
+    --v=2
+{%- endif %} \
     --logtostderr=true
 Restart=on-failure
 LimitNOFILE=65536

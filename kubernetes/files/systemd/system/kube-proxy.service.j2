@@ -21,8 +21,10 @@ ExecStart={{ component_bin_path }} \
     --cluster-cidr=${FLANNEL_NETWORK} \
     --proxy-mode=iptables \
 {%- if k8s.log_debug %}
-    --v=2 \
-{%- endif %}
+    --v=4
+{%- else %}
+    --v=2
+{%- endif %} \
     --logtostderr=true
 Restart=on-failure
 LimitNOFILE=65536

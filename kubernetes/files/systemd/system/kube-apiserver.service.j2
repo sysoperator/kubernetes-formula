@@ -73,11 +73,13 @@ ExecStart={{ component_bin_path }} \
     --requestheader-group-headers=X-Remote-Group \
     --requestheader-username-headers=X-Remote-User \
 {%- if k8s.log_debug %}
-    --v=2 \
-{%- endif %}
-{%- if k8s.apiserver.log_debug_rbac %}
+  {%- if k8s.apiserver.log_debug_rbac %}
     --vmodule=rbac*=5 \
-{%- endif %}
+  {%- endif %}
+    --v=4
+{%- else %}
+    --v=2
+{%- endif %} \
     --logtostderr=true
 Restart=on-failure
 Type=notify

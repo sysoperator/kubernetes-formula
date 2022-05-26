@@ -40,8 +40,10 @@ ExecStart={{ component_bin_path }} \
     --enable-hostpath-provisioner=false \
     --pvclaimbinder-sync-period=15s \
 {%- if k8s.log_debug %}
-    --v=2 \
-{%- endif %}
+    --v=4
+{%- else %}
+    --v=2
+{%- endif %} \
     --logtostderr=true
 Restart=on-failure
 LimitNOFILE=65536
