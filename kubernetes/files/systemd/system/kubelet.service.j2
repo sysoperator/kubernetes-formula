@@ -36,7 +36,9 @@ ExecStart={{ component_bin_path }} \
     --tls-cert-file={{ component_ssl_cert_path }} \
     --tls-private-key-file={{ component_ssl_key_path }} \
     --client-ca-file={{ kubernetes_ca_cert_path }} \
+{%- if salt['pkg.version_cmp'](kubernetes.source_version, 'v1.22.0') < 0 %}
     --chaos-chance=0.0 \
+{%- endif %}
     --container-runtime=docker \
 {%- if node_role == 'master' %}
     --node-labels="type=controller" \
