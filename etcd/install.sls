@@ -81,7 +81,7 @@ etcd-download:
     - archive_format: tar
     - options: v
     - user: nobody
-    - group: nogroup
+    - group: {% if salt['grains.get']('os_family') == 'Debian' %}nogroup{% elif salt['grains.get']('os_family') == 'RedHat' %}nobody{% endif %}
     - keep: True
     - if_missing: {{ package_dir }}
     - require:
@@ -95,14 +95,14 @@ etcdctl:
     - group: root
     - source: {{ package_dir }}/etcdctl
     - force: True
-{% if salt['file.file_exists'](etcdctl_bin_path) %}
+{%- if salt['file.file_exists'](etcdctl_bin_path) %}
     - onchanges:
-{% else %}
+{%- else %}
     - require:
-{% endif %}
+{%- endif %}
       - archive: etcd-download
 
-{% if node_role == 'master' %}
+{%- if node_role == 'master' %}
 etcd:
   file.copy:
     - name: {{ etcd_bin_path }}
@@ -163,4 +163,4 @@ etcd.service-running:
       - x509: etcd.key
       - file: etcd.service
       - file: etcd
-{% endif %}
+{%- endif %}

@@ -55,9 +55,11 @@ ExecStart={{ component_bin_path }} \
 #}
     --make-iptables-util-chains=false \
     --cpu-cfs-quota=false \
-    --cloud-provider="" \
     --cluster-domain={{ cluster_dns_cluster_domain }} \
     --cluster-dns={{ cluster_dns_nameservers|join(',') }} \
+{%- if salt['grains.get']('os_family') == 'RedHat' %}
+    --cgroup-driver=systemd \
+{%- endif %}
 {%- if k8s.log_debug %}
     --v=4
 {%- else %}

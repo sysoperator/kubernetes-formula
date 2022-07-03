@@ -4,6 +4,19 @@
 include:
   - debian/packages/haproxy
 
+{% if salt['grains.get']('os_family') == 'RedHat' %}
+extend:
+  haproxy:
+    pkg.installed:
+    - require_in:
+      - selinux: haproxy_connect_any
+
+haproxy_connect_any:
+  selinux.boolean:
+    - value: True
+    - persist: True
+{% endif %}
+
 /etc/haproxy/haproxy.cfg:
   file.managed:
     - source: salt://{{ tplroot }}/files/haproxy/haproxy.cfg.j2

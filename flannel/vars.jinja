@@ -1,8 +1,11 @@
 {%- set tplroot = tpldir.split('/')[0] -%}
 {%- from tplroot ~ "/map.jinja" import flannel with context -%}
+{%- from "common/vars.jinja" import
+    node_osarch
+-%}
 
 {%- set package_base_url = flannel.source_url + '/' + flannel.source_version -%}
-{%- set package_base_name = 'flanneld-' + salt['grains.get']('osarch') -%}
+{%- set package_base_name = 'flanneld-' + node_osarch -%}
 {%- set package_source = package_base_url + '/' + package_base_name -%}
 {%- set package_source_hash = flannel.source_hash -%}
 

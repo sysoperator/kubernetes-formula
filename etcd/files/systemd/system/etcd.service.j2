@@ -40,7 +40,7 @@ ExecStart={{ etcd_bin_path }} \
   {%- endfor %} \
     --initial-advertise-peer-urls {{ etcd_default_scheme }}{{ node_ip4 }}:2380 \
     --initial-cluster-state new
-{% endif %}
+{%- endif %}
 Restart=on-failure
 RestartSec=10
 LimitNOFILE=infinity
