@@ -5,7 +5,7 @@
 {%- from tplroot ~ "/vars.jinja" import
     cluster_dns_domain,
     cluster_ip4,
-    node_role, node_fqdn, node_host, node_ip4,
+    node_role,
     package_flavor,
     apiserver_healthz_url,
     kubernetes_etc_dir,
@@ -17,6 +17,9 @@
     component_source, component_source_hash,
     clusterrolebinding_system_kubelet_api_admin, clusterrolebinding_system_kubelet_api_admin_path
 with context -%}
+{%- from "common/vars.jinja" import
+     node_fqdn, node_host, node_ip4
+-%}
 {%- set component_ssl_subject_CN = component -%}
 {%- set component_ssl_subject_O  = None -%}
 {%- set component_ssl_subject_SAN = 'DNS:localhost, IP:127.0.0.1, DNS:kubernetes, DNS:kubernetes.default, DNS:kubernetes.default.svc, DNS:kubernetes.default.svc.' + cluster_dns_domain + ', IP:' + cluster_ip4 + ', DNS:' + node_fqdn + ', DNS:' + node_host + ', IP:' + node_ip4 -%}

@@ -3,7 +3,7 @@
 {%- set component = 'kubelet' -%}
 {%- set component_bin_path = kubernetes.install_dir + '/kubelet' -%}
 {%- from tplroot ~ "/vars.jinja" import
-    node_role, node_host,
+    node_role,
     package_flavor,
     apiserver_url, apiserver_healthz_url,
     kubelet_healthz_url,
@@ -14,6 +14,9 @@
     component_source, component_source_hash,
     component_kubeconfig
 with context -%}
+{%- from "common/vars.jinja" import
+    node_host
+-%}
 {%- set component_ssl_subject_CN = 'system:node:' + node_host -%}
 {%- set component_ssl_subject_O  = 'system:nodes' -%}
 {%- from tplroot ~ "/macros.jinja" import

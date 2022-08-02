@@ -10,8 +10,11 @@
     etcd_bin_path, etcdctl_bin_path
 with context -%}
 {%- from "kubernetes/vars.jinja" import
-    node_role, node_host, node_ip4,
+    node_role,
     kubernetes_ssl_cert_days_valid, kubernetes_ssl_cert_days_remaining
+-%}
+{%- from "common/vars.jinja" import
+    node_host, node_ip4
 -%}
 {%- set etcd_user = 'etcd' if node_role == 'master' else '' -%}
 {%- set etcd_ssl_key_usage = 'clientAuth, serverAuth' if node_role == 'master' else 'clientAuth' -%}

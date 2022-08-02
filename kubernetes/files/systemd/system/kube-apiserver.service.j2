@@ -3,7 +3,6 @@
 {%- set component_bin_path = kubernetes.install_dir + '/apiserver' -%}
 {%- from tplroot ~ "/vars.jinja" import
     k8s,
-    node_ip4,
     apiserver_port,
     kubernetes_networks, kubernetes_runtime_config, kubernetes_admission_controllers,
     kubernetes_etc_dir, kubernetes_ssl_dir,
@@ -17,6 +16,9 @@ with context -%}
     etcd_endpoints,
     etcd_ca_cert_path,
     etcd_ssl_cert_path, etcd_ssl_key_path
+-%}
+{%- from "common/vars.jinja" import
+    node_ip4
 -%}
 
 [Unit]

@@ -6,7 +6,7 @@
     etcd_ssl_cert_path, etcd_ssl_key_path,
     etcd_bin_path
 with context -%}
-{%- from "kubernetes/vars.jinja" import
+{%- from "common/vars.jinja" import
     node_host, node_ip4
 -%}
 

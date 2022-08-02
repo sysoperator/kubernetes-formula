@@ -4,7 +4,7 @@
 {%- from tplroot ~ "/vars.jinja" import
     k8s,
     cluster_dns_cluster_domain, cluster_dns_nameservers,
-    node_role, node_ip4,
+    node_role,
     kubelet_cgroup_driver,
     kubernetes_ca_cert_path,
     component_ssl_cert_path, component_ssl_key_path,
@@ -12,6 +12,9 @@
 with context -%}
 {%- from "cni/vars.jinja" import
     cni_etc_dir
+-%}
+{%- from "common/vars.jinja" import
+    node_ip4
 -%}
 
 [Unit]
