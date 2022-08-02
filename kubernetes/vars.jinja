@@ -68,7 +68,7 @@
 {%- set kubelet_healthz_hostport = kubelet_healthz_host + ':' + kubelet_healthz_port -%}
 {%- set kubelet_healthz_url = kubernetes_insecure_scheme + kubelet_healthz_hostport + '/healthz' -%}
 
-{%- set kubelet_cgroup_driver = None if k8s.kubelet.cgroup_driver == '' else k8s.kubelet.cgroup_driver -%}
+{%- set kubelet_cgroup_driver = k8s.kubelet.get('cgroup_driver') if k8s.kubelet.get('cgroup_driver')|default('') != 'None' else '' -%}
 
 {%- set kubelet_client_ssl_cert_path = kubernetes_ssl_dir + '/apiserver-kubelet-client.crt' -%}
 {%- set kubelet_client_ssl_key_path = kubernetes_ssl_dir + '/apiserver-kubelet-client.key' -%}
