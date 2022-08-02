@@ -1,7 +1,8 @@
 {%- set tplroot = tpldir.split('/')[0] -%}
 {%- from tplroot ~ "/map.jinja" import kubernetes with context -%}
 {%- from "common/vars.jinja" import
-    node_roles, node_kernel, node_osarch
+    node_roles, node_kernel, node_osarch,
+    node_fqdn, node_host, node_ip4
 -%}
 
 {%- set k8s = kubernetes.k8s %}
@@ -22,10 +23,6 @@
   {%- set node_role = 'node' -%}
   {%- set package_flavor = 'node' -%}
 {%- endif -%}
-
-{%- set node_fqdn = grains['fqdn'] -%}
-{%- set node_host = grains['host'] -%}
-{%- set node_ip4 = grains['fqdn_ip4'][0] -%}
 
 {%- set package_base_url = kubernetes.source_url + '/' + kubernetes.source_version -%}
 {%- set package_base_name = 'kubernetes-' + package_flavor + '-' + kubernetes.source_version + '-' + node_kernel + '-' + node_osarch -%}
@@ -70,6 +67,8 @@
 {%- set kubelet_healthz_port = 10248|string -%}
 {%- set kubelet_healthz_hostport = kubelet_healthz_host + ':' + kubelet_healthz_port -%}
 {%- set kubelet_healthz_url = kubernetes_insecure_scheme + kubelet_healthz_hostport + '/healthz' -%}
+
+{%- set kubelet_cgroup_driver = None if k8s.kubelet.cgroup_driver == '' else k8s.kubelet.cgroup_driver -%}
 
 {%- set kubelet_client_ssl_cert_path = kubernetes_ssl_dir + '/apiserver-kubelet-client.crt' -%}
 {%- set kubelet_client_ssl_key_path = kubernetes_ssl_dir + '/apiserver-kubelet-client.key' -%}

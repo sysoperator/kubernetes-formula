@@ -13,6 +13,10 @@ kubernetes:
         default_address: 127.0.0.1
         default_secure_port: 6443
         log_debug_rbac: True
+      kubelet:
+        # Use the container runtime default if empty
+        # Possible values are: 'cgroupfs', 'systemd' (default: cgroupfs)
+        cgroup_driver:
       cluster_dns:
         override_resolvconf: False
         domain: internal

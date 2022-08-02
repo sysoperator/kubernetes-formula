@@ -5,6 +5,7 @@
     k8s,
     cluster_dns_cluster_domain, cluster_dns_nameservers,
     node_role, node_ip4,
+    kubelet_cgroup_driver,
     kubernetes_ca_cert_path,
     component_ssl_cert_path, component_ssl_key_path,
     component_kubeconfig
@@ -59,6 +60,8 @@ ExecStart={{ component_bin_path }} \
     --cluster-dns={{ cluster_dns_nameservers|join(',') }} \
 {%- if salt['grains.get']('os_family') == 'RedHat' %}
     --cgroup-driver=systemd \
+{%- elif kubelet_cgroup_driver != '' %}
+    --cgroup-driver={{ kubelet_cgroup_driver }} \
 {%- endif %}
 {%- if k8s.log_debug %}
     --v=4
