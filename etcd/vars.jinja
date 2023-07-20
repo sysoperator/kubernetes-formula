@@ -1,11 +1,11 @@
 {%- set tplroot = tpldir.split('/')[0] -%}
 {%- from tplroot ~ "/map.jinja" import etcd with context -%}
 {%- from "common/vars.jinja" import
-    node_kernel, node_osarch
+    node_kernel_lower, node_osarch
 -%}
 
 {%- set package_base_url = etcd.source_url + '/' + etcd.source_version -%}
-{%- set package_base_name = 'etcd-' + etcd.source_version + '-' + node_kernel + '-' + node_osarch -%}
+{%- set package_base_name = 'etcd-' + etcd.source_version + '-' + node_kernel_lower + '-' + node_osarch -%}
 {%- set package_dir = '/tmp/' + package_base_name -%}
 {%- set package_source = package_base_url + '/' + package_base_name + '.tar.gz' -%}
 {%- set package_source_hash = package_base_url + '/SHA256SUMS' -%}

@@ -39,6 +39,14 @@ ExecStart={{ component_bin_path }} \
     --authorization-mode={% for mode in k8s.authorization_mode -%}
         {{ mode }}{% if not loop.last %},{% endif %}
 {%- endfor %} \
+{%- if k8s.authentication_token_webhook.enabled %}
+    --authentication-token-webhook-config-file={{ kubernetes_etc_dir }}/webhook.conf \
+  {%- if k8s.authentication_token_webhook.flags|length > 0 %}
+    {%- for flag in k8s.authentication_token_webhook.flags %}
+    {{ flag }} \
+    {%- endfor %}
+  {%- endif %}
+{%- endif %}
     --service-account-{% if salt['pkg.version_cmp'](kubernetes.source_version, 'v1.20.0') >= 0 %}signing-{% endif %}key-file={{ kubernetes_sa_key_path }} \
 {%- if salt['pkg.version_cmp'](kubernetes.source_version, 'v1.20.0') >= 0 %}
     --service-account-key-file={{ kubernetes_sa_pub_path }} \

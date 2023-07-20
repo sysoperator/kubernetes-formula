@@ -7,6 +7,6 @@
 {%- set package_base_url = flannel.source_url + '/' + flannel.source_version -%}
 {%- set package_base_name = 'flanneld-' + node_osarch -%}
 {%- set package_source = package_base_url + '/' + package_base_name -%}
-{%- set package_source_hash = flannel.source_hash -%}
+{%- set package_source_hash = flannel.source_hash.get(node_osarch) -%}
 
 {%- set flanneld_bin_path = flannel.install_dir + '/flanneld' -%}

@@ -15,10 +15,11 @@
     component_kubeconfig
 with context -%}
 {%- from "common/vars.jinja" import
-    node_host
+    node_fqdn, node_host, node_ip4
 -%}
 {%- set component_ssl_subject_CN = 'system:node:' + node_host -%}
 {%- set component_ssl_subject_O  = 'system:nodes' -%}
+{%- set component_ssl_subject_SAN = 'DNS:' + node_fqdn + ', DNS:' + node_host + ', IP:' + node_ip4 -%}
 {%- from tplroot ~ "/macros.jinja" import
     kubeconfig,
     kubecomponentbinary,
@@ -122,6 +123,6 @@ kubectl label node {{ node_host }} node-role.kubernetes.io/master= --overwrite=t
 
 {{ kubepkicertvalid(component, component_ssl_cert_path, kubernetes_ssl_cert_days_remaining) }}
 
-{{ kubepkicert(component, component_ssl_cert_path, component_ssl_key_path, kubernetes_ca_cert_path, kubernetes_ca_key_path, 'clientAuth', kubernetes_ssl_cert_days_valid, kubernetes_ssl_cert_days_remaining, component_ssl_subject_CN, component_ssl_subject_O) }}
+{{ kubepkicert(component, component_ssl_cert_path, component_ssl_key_path, kubernetes_ca_cert_path, kubernetes_ca_key_path, 'serverAuth, clientAuth', kubernetes_ssl_cert_days_valid, kubernetes_ssl_cert_days_remaining, component_ssl_subject_CN, component_ssl_subject_O, component_ssl_subject_SAN) }}
 
 {{ kubepkikey(component, component_ssl_key_path) }}

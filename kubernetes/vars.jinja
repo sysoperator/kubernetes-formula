@@ -1,7 +1,7 @@
 {%- set tplroot = tpldir.split('/')[0] -%}
 {%- from tplroot ~ "/map.jinja" import kubernetes with context -%}
 {%- from "common/vars.jinja" import
-    node_roles, node_kernel, node_osarch,
+    node_roles, node_kernel_lower, node_osarch,
     node_fqdn, node_host, node_ip4
 -%}
 
@@ -25,7 +25,7 @@
 {%- endif -%}
 
 {%- set package_base_url = kubernetes.source_url + '/' + kubernetes.source_version -%}
-{%- set package_base_name = 'kubernetes-' + package_flavor + '-' + kubernetes.source_version + '-' + node_kernel + '-' + node_osarch -%}
+{%- set package_base_name = 'kubernetes-' + package_flavor + '-' + kubernetes.source_version + '-' + node_kernel_lower + '-' + node_osarch -%}
 {%- set package_dir = '/tmp/' + package_base_name -%}
 {%- set package_source = package_base_url + '/' + package_base_name|replace('-' + kubernetes.source_version, '') + '.tar.gz' -%}
 {%- set package_source_hash = package_source + '.sha512' -%}
@@ -35,7 +35,7 @@
 {%- endif -%}
 
 {%- set component_source = package_dir + '/bin/' + component -%}
-{%- set component_source_hash = kubernetes.source_url + '/' + kubernetes.source_version + '/bin/' + node_kernel + '/' + node_osarch + '/' + component + '.sha512' -%}
+{%- set component_source_hash = kubernetes.source_url + '/' + kubernetes.source_version + '/bin/' + node_kernel_lower + '/' + node_osarch + '/' + component + '.sha512' -%}
 
 {%- set kubernetes_default_scheme = 'https://' -%}
 {%- set kubernetes_insecure_scheme = 'http://' -%}

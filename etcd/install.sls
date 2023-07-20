@@ -14,7 +14,8 @@ with context -%}
     kubernetes_ssl_cert_days_valid, kubernetes_ssl_cert_days_remaining
 -%}
 {%- from "common/vars.jinja" import
-    node_host, node_ip4
+    node_host, node_ip4,
+    nobody_groupname
 -%}
 {%- set etcd_user = 'etcd' if node_role == 'master' else '' -%}
 {%- set etcd_ssl_key_usage = 'clientAuth, serverAuth' if node_role == 'master' else 'clientAuth' -%}
@@ -84,7 +85,7 @@ etcd-download:
     - archive_format: tar
     - options: v
     - user: nobody
-    - group: {% if salt['grains.get']('os_family') == 'Debian' %}nogroup{% elif salt['grains.get']('os_family') == 'RedHat' %}nobody{% endif %}
+    - group: {{ nobody_groupname }}
     - keep: True
     - if_missing: {{ package_dir }}
     - require:
