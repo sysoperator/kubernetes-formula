@@ -6,8 +6,8 @@
     kubernetes_ssl_dir,
     kubernetes_ca_cert_path, kubernetes_ca_key_path,
     kubernetes_sa_key_path,
-    kubernetes_cert_issuers,
-    kubernetes_cert_issuer_duration,
+    kubernetes_x509_signers,
+    kubernetes_x509_signers_duration,
     component_kubeconfig
 with context -%}
 
@@ -26,16 +26,14 @@ ExecStart={{ component_bin_path }} \
     --root-ca-file={{ kubernetes_ca_cert_path }} \
     --service-account-private-key-file={{ kubernetes_sa_key_path }} \
     --use-service-account-credentials \
-{%- if k8s.enable_cert_issuer %}
+{%- if k8s.x509_signers_enabled %}
     --cluster-signing-kube-apiserver-client-cert-file={{ kubernetes_ca_cert_path }} \
     --cluster-signing-kube-apiserver-client-key-file={{ kubernetes_ca_key_path }} \
-    --cluster-signing-duration={{ kubernetes_cert_issuer_duration }} \
-  {%- if kubernetes_cert_issuers|length > 0 %}
-    {%- for issuer in kubernetes_cert_issuers %}
-    --cluster-signing-{{ issuer }}-cert-file={{ kubernetes_ssl_dir }}/{{ issuer }}-ca.crt \
-    --cluster-signing-{{ issuer }}-key-file={{ kubernetes_ssl_dir }}/{{ issuer }}-ca.key \
-    {%- endfor %}
-  {%- endif %}
+    --cluster-signing-duration={{ kubernetes_x509_signers_duration }} \
+  {%- for signer in kubernetes_x509_signers %}
+    --cluster-signing-{{ signer['name'] }}-cert-file={{ kubernetes_ssl_dir }}/{{ signer['name'] }}-ca.crt \
+    --cluster-signing-{{ signer['name'] }}-key-file={{ kubernetes_ssl_dir }}/{{ signer['name'] }}-ca.key \
+  {%- endfor %}
 {%- endif %}
     --enable-hostpath-provisioner=false \
     --pvclaimbinder-sync-period=15s \

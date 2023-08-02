@@ -18,7 +18,7 @@
     clusterrolebinding_system_kubelet_api_admin, clusterrolebinding_system_kubelet_api_admin_path
 with context -%}
 {%- from "common/vars.jinja" import
-     node_fqdn, node_host, node_ip4
+    node_fqdn, node_host, node_ip4
 -%}
 {%- set component_ssl_subject_CN = component -%}
 {%- set component_ssl_subject_O  = None -%}

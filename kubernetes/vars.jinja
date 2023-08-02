@@ -49,8 +49,8 @@
 {%- set kubernetes_networks = k8s.networks -%}
 {%- set kubernetes_runtime_config = k8s.runtime_config if k8s.runtime_config is not none else {} -%}
 {%- set kubernetes_admission_controllers = k8s.admission_controllers if k8s.admission_controllers is not none else {} -%}
-{%- set kubernetes_cert_issuers = k8s.cert_issuers if k8s.cert_issuers is not none else {} -%}
-{%- set kubernetes_cert_issuer_duration = k8s.cert_issuer_duration if k8s.cert_issuer_duration is not none else '720h' -%}
+{%- set kubernetes_x509_signers = k8s.x509_signers if k8s.x509_signers is not none else [] -%}
+{%- set kubernetes_x509_signers_duration = k8s.x509_signers_duration if k8s.x509_signers_duration is not none else '720h' -%}
 
 {%- set kubernetes_etc_dir = k8s.etc_dir -%}
 {%- set kubernetes_ssl_dir = kubernetes_etc_dir + k8s.ssl_dir -%}
