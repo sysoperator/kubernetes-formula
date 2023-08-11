@@ -33,7 +33,11 @@ include:
   - debian/packages/curl
   - debian/packages/jq
   - systemd/cmd
+{%- if salt['pkg.version_cmp'](kubernetes.source_version, 'v1.24.0') < 0 %}
   - cni
+{%- else %}
+  - containerd
+{%- endif %}
   - .cmd
 {% if node_role == 'node' %}
   - .haproxy
@@ -52,7 +56,9 @@ include:
     - require:
       - x509: {{ kubernetes_ca_cert_path }}
       - x509: {{ component }}.crt
+{%- if salt['pkg.version_cmp'](kubernetes.source_version, 'v1.24.0') < 0 %}
       - file: {{ cni_etc_dir }}/10-bridge.conf
+{%- endif %}
     - require_in:
       - service: {{ component }}.service-enabled
     - watch_in:

@@ -5,6 +5,8 @@
     node_fqdn, node_host, node_ip4
 -%}
 
+{%- set kubernetes_version = kubernetes.source_version %}
+
 {%- set k8s = kubernetes.k8s %}
 
 {%- set cluster_ip4 = k8s.apiserver.cluster_ip -%}

@@ -1,8 +1,10 @@
 {%- from tplroot ~ "/map.jinja" import flannel with context -%}
 {%- from tplroot ~ "/vars.jinja" import
+    flannel_etcd_api,
     flanneld_bin_path
 with context -%}
 {%- from "kubernetes/vars.jinja" import
+    kubernetes_version,
     cluster_networks,
     node_role
 -%}
@@ -17,20 +19,31 @@ with context -%}
 Description=Network fabric for containers
 Documentation=https://github.com/coreos/flannel
 After=etcd.service
+{%- if salt['pkg.version_cmp'](kubernetes_version, 'v1.24.0') < 0 %}
 Before=docker.service
+{%- endif %}
 
 [Service]
 Type=notify
 RuntimeDirectory=flannel
 {%- if node_role == 'master' %}
-Environment=ETCDCTL_API=2
+Environment=ETCDCTL_API={{ flannel_etcd_api }}
 ExecStartPre={{ etcdctl_bin_path }} \
+  {%- if flannel_etcd_api == 3 %}
+    --endpoints={{ etcd_endpoints|join(',') }} \
+    --cacert={{ etcd_ca_cert_path }} \
+    --cert={{ etcd_ssl_cert_path }} \
+    --key={{ etcd_ssl_key_path }} \
+    put \
+  {%- elif flannel_etcd_api <= 2 %}
     --endpoints {{ etcd_endpoints|join(',') }} \
     --ca-file {{ etcd_ca_cert_path }} \
     --cert-file {{ etcd_ssl_cert_path }} \
     --key-file {{ etcd_ssl_key_path }} \
-    set /coreos.com/network/config \
-    '{"Network": "{{ cluster_networks.pod_network_cidr }}", "Backend": {"Type": "vxlan", "VNI": 1}}'
+    set \
+  {%- endif %}
+      /coreos.com/network/config \
+        '{"Network": "{{ cluster_networks.pod_network_cidr }}", "Backend": {"Type": "vxlan", "VNI": 1}}'
 {%- endif %}
 ExecStart={{ flanneld_bin_path }} \
     -etcd-endpoints={{ etcd_endpoints|join(',') }} \

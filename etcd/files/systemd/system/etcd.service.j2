@@ -6,6 +6,9 @@
     etcd_ssl_cert_path, etcd_ssl_key_path,
     etcd_bin_path
 with context -%}
+{%- from "flannel/vars.jinja" import
+    flannel_etcd_api
+-%}
 {%- from "common/vars.jinja" import
     node_host, node_ip4
 -%}
@@ -20,7 +23,9 @@ Wants=network-online.target
 User=etcd
 Type=notify
 ExecStart={{ etcd_bin_path }} \
+{%- if flannel_etcd_api <= 2 %}
     --enable-v2 \
+{%- endif %}
     --name {{ node_host }} \
     --advertise-client-urls {{ etcd_default_scheme }}{{ node_ip4 }}:2379 \
     --data-dir /var/local/etcd \
