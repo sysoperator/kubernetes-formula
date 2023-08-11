@@ -17,7 +17,9 @@ ExecStart={{ component_bin_path }} \
     --kubeconfig={{ component_kubeconfig }} \
     --bind-address=0.0.0.0 \
     --secure-port=0 \
+{%- if salt['pkg.version_cmp'](kubernetes.source_version, 'v1.24.0') < 0 %}
     --port=0 \
+{%- endif %}
 {%- if k8s.log_debug %}
     --v=4
 {%- else %}

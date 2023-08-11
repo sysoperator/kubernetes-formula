@@ -1,7 +1,7 @@
 cni:
   lookup:
     source_url: https://github.com/containernetworking/plugins/releases/download
-    source_version: v1.0.1
+    source_version: v1.2.0
     install_dir: /opt/cni/bin
     cni:
       etc_dir: /etc/cni/net.d

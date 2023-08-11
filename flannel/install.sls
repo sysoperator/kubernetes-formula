@@ -4,6 +4,9 @@
     package_source, package_source_hash,
     flanneld_bin_path
 with context -%}
+{%- from "kubernetes/vars.jinja" import
+    kubernetes_version
+-%}
 
 include:
   - systemd/cmd
@@ -28,7 +31,9 @@ flannel.service:
         tplroot: {{ tplroot }}
     - require_in:
       - service: flannel.service-enabled
+{%- if salt['pkg.version_cmp'](kubernetes_version, 'v1.24.0') < 0 %}
       - file: docker-systemd-drop-in
+{%- endif %}
     - watch_in:
       - module: systemctl-reload
 
@@ -44,5 +49,7 @@ flannel.service-running:
     - watch:
       - file: flannel.service
       - file: flanneld
+{%- if salt['pkg.version_cmp'](kubernetes_version, 'v1.24.0') < 0 %}
     - watch_in:
       - service: docker.service-running
+{%- endif %}

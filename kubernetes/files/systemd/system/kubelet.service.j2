@@ -43,7 +43,11 @@ ExecStart={{ component_bin_path }} \
 {%- if salt['pkg.version_cmp'](kubernetes.source_version, 'v1.22.0') < 0 %}
     --chaos-chance=0.0 \
 {%- endif %}
+{%- if salt['pkg.version_cmp'](kubernetes.source_version, 'v1.24.0') < 0 %}
     --container-runtime=docker \
+{%- else %}
+    --container-runtime-endpoint=unix:///run/containerd/containerd.sock \
+{%- endif %}
 {%- if node_role == 'master' %}
     --node-labels="type=controller" \
     --register-with-taints=node-role.kubernetes.io/master=:NoSchedule \
@@ -51,8 +55,10 @@ ExecStart={{ component_bin_path }} \
 {%- if node_role == 'node' %}
     --enable-controller-attach-detach=false \
 {%- endif %}
+{%- if salt['pkg.version_cmp'](kubernetes.source_version, 'v1.24.0') < 0 %}
     --network-plugin=cni \
     --cni-conf-dir={{ cni_etc_dir }} \
+{%- endif %}
 {#-
   Issue:  https://github.com/kubernetes/kubernetes/issues/90259
   Commit: https://github.com/kubernetes/kubernetes/commit/8bed088224fb38b41255b37e59a1701caefa171b
