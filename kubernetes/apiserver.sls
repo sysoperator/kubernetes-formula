@@ -3,7 +3,7 @@
 {%- set component = 'kube-apiserver' -%}
 {%- set component_bin_path = kubernetes.install_dir + '/apiserver' -%}
 {%- from tplroot ~ "/vars.jinja" import
-    cluster_dns_domain,
+    cluster_dns_cluster_domain,
     cluster_ip4,
     node_role,
     package_flavor,
@@ -22,7 +22,7 @@ with context -%}
 -%}
 {%- set component_ssl_subject_CN = component -%}
 {%- set component_ssl_subject_O  = None -%}
-{%- set component_ssl_subject_SAN = 'DNS:localhost, IP:127.0.0.1, DNS:kubernetes, DNS:kubernetes.default, DNS:kubernetes.default.svc, DNS:kubernetes.default.svc.' + cluster_dns_domain + ', IP:' + cluster_ip4 + ', DNS:' + node_fqdn + ', DNS:' + node_host + ', IP:' + node_ip4 -%}
+{%- set component_ssl_subject_SAN = 'DNS:localhost, IP:127.0.0.1, DNS:kubernetes, DNS:kubernetes.default, DNS:kubernetes.default.svc, DNS:kubernetes.default.svc.' + cluster_dns_cluster_domain + ', IP:' + cluster_ip4 + ', DNS:' + node_fqdn + ', DNS:' + node_host + ', IP:' + node_ip4 -%}
 {%- from tplroot ~ "/macros.jinja" import
     kubecomponentbinary,
     kubepkicertvalid, kubepkicert, kubepkikey
