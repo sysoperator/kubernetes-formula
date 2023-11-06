@@ -55,6 +55,7 @@ defaults
 
 frontend kube-apiserver
 	mode tcp
+	option tcplog
 	bind {{ apiserver_hostport }}
 	default_backend kube-apiserver
 
