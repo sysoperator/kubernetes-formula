@@ -20,6 +20,9 @@ ExecStart={{ component_bin_path }} \
     --metrics-bind-address=127.0.0.1:10249 \
     --cluster-cidr=${FLANNEL_NETWORK} \
     --proxy-mode=iptables \
+{%- if salt['pkg.version_cmp'](kubernetes.source_version, 'v1.24.0') >= 0 %}
+    --masquerade-all \
+{%- endif %}
 {%- if k8s.log_debug %}
     --v=4
 {%- else %}

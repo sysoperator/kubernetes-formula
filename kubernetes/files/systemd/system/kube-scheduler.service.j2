@@ -24,8 +24,9 @@ ExecStart={{ component_bin_path }} \
     --v=4
 {%- else %}
     --v=2
-{%- endif %} \
+{%- endif %}{% if salt['pkg.version_cmp'](kubernetes.source_version, 'v1.26.0') < 0 %} \
     --logtostderr=true
+{%- endif %}
 Restart=on-failure
 LimitNOFILE=65536
 

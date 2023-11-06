@@ -3,6 +3,7 @@
     cni_data_dir,
     cni_network_name, cni_bridge_name
 with context -%}
+{%- from "kubernetes/map.jinja" import kubernetes with context -%}
 {%- set node_pod_network_cidr = salt['cmd.shell']('grep FLANNEL_SUBNET= /run/flannel/subnet.env | cut -d= -f2')|network_address -%}
 {%- set node_pod_network_mtu = salt['cmd.shell']('grep FLANNEL_MTU= /run/flannel/subnet.env | cut -d= -f2')|int -%}
 
@@ -17,5 +18,8 @@ with context -%}
      "dataDir": "{{ cni_data_dir }}"
   },
   "isDefaultGateway": true,
+{%- if salt['pkg.version_cmp'](kubernetes.source_version, 'v1.24.0') >= 0 %}
+  "ipMasq": true,
+{%- endif %}
   "mtu": {{ node_pod_network_mtu }}
 }
