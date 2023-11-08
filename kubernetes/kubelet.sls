@@ -66,7 +66,7 @@ include:
 
 {{ component }}-systemd-cgroups-drop-in-file:
   file.managed:
-    - name: /etc/systemd/systemd/{{ component }}.service.d/10-cgroups.conf
+    - name: /etc/systemd/system/{{ component }}.service.d/10-cgroups.conf
     - source: salt://{{ tplroot }}//files/systemd/system/{{ component }}.service.d/10-cgroups.conf
     - makedirs: True
     - dir_mode: 755
