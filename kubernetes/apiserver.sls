@@ -23,7 +23,7 @@ with context -%}
 -%}
 {%- set component_ssl_subject_CN = component -%}
 {%- set component_ssl_subject_O  = None -%}
-{%- set component_ssl_subject_SAN = 'DNS:localhost, IP:127.0.0.1, DNS:kubernetes, DNS:kubernetes.default, DNS:kubernetes.default.svc, DNS:kubernetes.default.svc.' + cluster_dns_cluster_domain + ', IP:' + cluster_ip4 + ', DNS:' + node_fqdn + ', DNS:' + node_host + ', IP:' + node_ip4 + ', DNS:' + apiserver_external_domain -%}
+{%- set component_ssl_subject_SAN = 'DNS:localhost, IP:127.0.0.1, DNS:kubernetes, DNS:kubernetes.default, DNS:kubernetes.default.svc, DNS:kubernetes.default.svc.' + cluster_dns_cluster_domain + ', IP:' + cluster_ip4 + ', DNS:' + node_fqdn + ', DNS:' + node_host + ', IP:' + node_ip4 + apiserver_external_domain -%}
 {%- from tplroot ~ "/macros.jinja" import
     kubecomponentbinary,
     kubepkicertvalid, kubepkicert, kubepkikey
