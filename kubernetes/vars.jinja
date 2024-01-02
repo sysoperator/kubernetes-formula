@@ -54,6 +54,7 @@
 
 {%- set kubernetes_networks = k8s.networks -%}
 {%- set kubernetes_runtime_config = k8s.runtime_config if k8s.runtime_config is not none else {} -%}
+{%- set kubernetes_feature_gates = k8s.feature_gates if k8s.feature_gates is not none else {} -%}
 {%- set kubernetes_admission_controllers = k8s.admission_controllers if k8s.admission_controllers is not none else {} -%}
 {%- set kubernetes_x509_signers = k8s.x509_signers if k8s.x509_signers is not none else [] -%}
 {%- set kubernetes_x509_signers_duration = k8s.x509_signers_duration if k8s.x509_signers_duration is not none else '720h' -%}

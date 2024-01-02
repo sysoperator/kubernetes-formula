@@ -6,6 +6,7 @@
     cluster_dns_cluster_domain, cluster_dns_nameservers,
     node_role,
     kubelet_cgroup_driver,
+    kubernetes_feature_gates,
     kubernetes_ca_cert_path,
     component_ssl_cert_path, component_ssl_key_path,
     component_kubeconfig
@@ -58,6 +59,11 @@ ExecStart={{ component_bin_path }} \
 {%- if salt['pkg.version_cmp'](kubernetes.source_version, 'v1.24.0') < 0 %}
     --network-plugin=cni \
     --cni-conf-dir={{ cni_etc_dir }} \
+{%- endif %}
+{%- if kubernetes_feature_gates|length > 0 %}
+    --feature-gates={% for feature in kubernetes_feature_gates -%}
+        {{ feature }}{% if not loop.last %},{% endif %}
+{%- endfor %} \
 {%- endif %}
 {#-
   Issue:  https://github.com/kubernetes/kubernetes/issues/90259
