@@ -45,7 +45,7 @@
 {%- set kubernetes_default_scheme = 'https://' -%}
 {%- set kubernetes_insecure_scheme = 'http://' -%}
 
-{%- set apiserver_external_domain = k8s.apiserver.external_domain -%}
+{%- set apiserver_external_domain = ', DNS:' + k8s.apiserver.external_domain if k8s.apiserver.external_domain else '' -%}
 {%- set apiserver_host = k8s.apiserver.default_address -%}
 {%- set apiserver_port = k8s.apiserver.default_secure_port|string -%}
 {%- set apiserver_hostport = apiserver_host + ':' + apiserver_port -%}
