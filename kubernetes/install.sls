@@ -42,7 +42,9 @@ include:
   - .scheduler
   - .kubectl
 {% endif %}
+{% if node_role in ['master', 'node'] %}
   - .kubelet
+{% endif %}
   - .proxy
 
 {% if node_role == 'master' %}
@@ -99,8 +101,10 @@ include:
       - x509: kube-scheduler.crt
       - x509: apiserver-kubelet-client.crt
       - x509: kube-admin.crt
-{%- endif %}
       - x509: kubelet.crt
+{%- elif node_role == 'node' %}
+      - x509: kubelet.crt
+{%- endif %}
       - x509: kube-proxy.crt
     - order: first
 
@@ -184,6 +188,8 @@ include:
         tplroot: {{ tplroot }}
     - require:
       - file: dhclient-nodnsupdate
+  {%- if node_role in ['master', 'node'] %}
     - require_in:
       - file: kubelet
+  {%- endif %}
 {% endif %}

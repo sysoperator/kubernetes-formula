@@ -19,13 +19,16 @@ with context -%}
     kubecomponentbinary,
     kubepkicertvalid, kubepkicert, kubepkikey
 with context -%}
+{%- from "common/vars.jinja" import
+    node_roles
+-%}
 
 include:
   - systemd/cmd
   - debian/packages/conntrack
   - debian/packages/ipset
   - debian/sysctl/ip-forward
-{% if node_role == 'node' %}
+{% if node_role == 'node' or 'kube-node-proxier' in node_roles %}
   - .haproxy
 {% endif %}
 

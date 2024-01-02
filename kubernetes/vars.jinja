@@ -18,12 +18,15 @@
 {%- set cluster_dns_search = cluster_dns.search if cluster_dns.search is not none else {} -%}
 {%- set cluster_dns_nameservers = cluster_dns.nameservers -%}
 
+{%- set package_flavor = 'node' -%}
+
 {%- if 'kube-master' in node_roles -%}
   {%- set node_role = 'master' -%}
   {%- set package_flavor = 'server' -%}
-{%- else -%}
+{%- elif 'kube-node' in node_roles -%}
   {%- set node_role = 'node' -%}
-  {%- set package_flavor = 'node' -%}
+{%- else -%}
+  {%- set node_role = 'node-proxier' %}
 {%- endif -%}
 
 {%- set package_base_url = kubernetes.source_url + '/' + kubernetes.source_version -%}

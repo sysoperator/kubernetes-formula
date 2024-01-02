@@ -7,6 +7,9 @@ with context -%}
 {%- from "kubernetes/vars.jinja" import
     kubernetes_version
 -%}
+{%- from "common/vars.jinja" import
+    node_roles
+-%}
 
 include:
   - systemd/cmd
@@ -32,7 +35,9 @@ flannel.service:
     - require_in:
       - service: flannel.service-enabled
 {%- if salt['pkg.version_cmp'](kubernetes_version, 'v1.24.0') < 0 %}
+  {%- if 'kube-node-proxier' not in node_roles %}
       - file: docker-systemd-drop-in
+  {%- endif %}
 {%- endif %}
     - watch_in:
       - module: systemctl-reload
@@ -50,6 +55,8 @@ flannel.service-running:
       - file: flannel.service
       - file: flanneld
 {%- if salt['pkg.version_cmp'](kubernetes_version, 'v1.24.0') < 0 %}
+  {%- if 'kube-node-proxier' not in node_roles %}
     - watch_in:
       - service: docker.service-running
+  {%- endif %}
 {%- endif %}
