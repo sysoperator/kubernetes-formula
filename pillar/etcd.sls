@@ -7,13 +7,8 @@ etcd:
     etc_dir: /etc/etcd
     ssl_dir: /pki
     data_dir: /var/local/etcd
-    endpoints:
-      - https://10.81.10.1:2379
     cluster:
       name: etcd-cluster
-      peers:
-        - name: etcd-peer0
-          ip: 10.81.10.1
       initial_cluster: True
       ca_cert: |
 %CA CERT%

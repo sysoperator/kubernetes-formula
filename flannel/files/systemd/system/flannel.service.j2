@@ -9,7 +9,6 @@ with context -%}
     node_role
 -%}
 {%- from "etcd/vars.jinja" import
-    etcd_endpoints,
     etcd_ca_cert_path,
     etcd_ssl_cert_path, etcd_ssl_key_path,
     etcdctl_bin_path
@@ -29,14 +28,15 @@ RuntimeDirectory=flannel
 {%- if node_role == 'master' %}
 Environment=ETCDCTL_API={{ flannel_etcd_api }}
 ExecStartPre={{ etcdctl_bin_path }} \
+    --endpoints{% if flannel_etcd_api == 3 %}={% endif %}{% for server, addrs in salt['mine.get']('roles:kube-master', 'kube_master_ip_addrs', tgt_type='grain')|dictsort() -%}
+        https://{{ addrs[0] }}:2379{% if not loop.last %},{% endif %}
+  {%- endfor %} \
   {%- if flannel_etcd_api == 3 %}
-    --endpoints={{ etcd_endpoints|join(',') }} \
     --cacert={{ etcd_ca_cert_path }} \
     --cert={{ etcd_ssl_cert_path }} \
     --key={{ etcd_ssl_key_path }} \
     put \
   {%- elif flannel_etcd_api <= 2 %}
-    --endpoints {{ etcd_endpoints|join(',') }} \
     --ca-file {{ etcd_ca_cert_path }} \
     --cert-file {{ etcd_ssl_cert_path }} \
     --key-file {{ etcd_ssl_key_path }} \
@@ -46,14 +46,21 @@ ExecStartPre={{ etcdctl_bin_path }} \
         '{"Network": "{{ cluster_networks.pod_network_cidr }}", "Backend": {"Type": "vxlan", "VNI": 1}}'
 {%- endif %}
 ExecStart={{ flanneld_bin_path }} \
-    -etcd-endpoints={{ etcd_endpoints|join(',') }} \
+    -etcd-endpoints={% for server, addrs in salt['mine.get']('roles:kube-master', 'kube_master_ip_addrs', tgt_type='grain')|dictsort() -%}
+        https://{{ addrs[0] }}:2379{% if not loop.last %},{% endif %}
+  {%- endfor %} \
     -etcd-cafile={{ etcd_ca_cert_path }} \
     -etcd-certfile={{ etcd_ssl_cert_path }} \
     -etcd-keyfile={{ etcd_ssl_key_path }} \
-    -subnet-file=/run/flannel/subnet.env \
-    -subnet-lease-renew-margin=1200
+    -subnet-file=/run/flannel/subnet.env
+{%- if flannel.get('subnet_lease_renew_margin', False) %} \
+    -subnet-lease-renew-margin={{ flannel.subnet_lease_renew_margin }}
+{%- endif %}
 {%- if salt['pkg.version_cmp'](kubernetes_version, 'v1.24.0') < 0 %} \
     -ip-masq
+{%- endif %}
+{%- if flannel.get('verbosity', False) %} \
+    -v={{ flannel.verbosity }}
 {%- endif %}
 Restart=on-failure
 RestartSec=10

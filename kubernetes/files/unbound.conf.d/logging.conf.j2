@@ -1,0 +1,6 @@
+{%- from tplroot ~ "/vars.jinja" import
+    unbound_log_file, unbound_log_verbosity
+with context -%}
+server:
+	logfile: "{{ unbound_log_file }}"
+	verbosity: {{ unbound_log_verbosity }}

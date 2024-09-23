@@ -1,0 +1,14 @@
+{%- from tplroot ~ "/vars.jinja" import
+    cluster_dns_cluster_domain, cluster_dns_nameservers
+with context -%}
+forward-zone:
+	name: "{{ cluster_dns_cluster_domain }}."
+{%- for nameserver in cluster_dns_nameservers %}
+	forward-addr: {{ nameserver }}@30053
+{%- endfor %}
+
+forward-zone:
+	name: "."
+{%- for nameserver in salt['grains.get']('dns:ip4_nameservers') %}
+	forward-addr: {{ nameserver }}
+{%- endfor %}

@@ -6,6 +6,7 @@
     kubernetes_ssl_dir,
     kubernetes_ca_cert_path, kubernetes_ca_key_path,
     kubernetes_sa_key_path,
+    kubernetes_root_ca_file,
     kubernetes_x509_signers,
     kubernetes_x509_signers_duration,
     component_kubeconfig
@@ -25,7 +26,7 @@ ExecStart={{ component_bin_path }} \
 {%- if salt['pkg.version_cmp'](kubernetes.source_version, 'v1.24.0') < 0 %}
     --port=0 \
 {%- endif %}
-    --root-ca-file={{ kubernetes_ca_cert_path }} \
+    --root-ca-file={{ kubernetes_root_ca_file }} \
     --service-account-private-key-file={{ kubernetes_sa_key_path }} \
     --use-service-account-credentials \
 {%- if k8s.x509_signers_enabled %}
@@ -47,6 +48,7 @@ ExecStart={{ component_bin_path }} \
     --logtostderr=true
 {%- endif %}
 Restart=on-failure
+RestartSec=5
 LimitNOFILE=65536
 
 [Install]

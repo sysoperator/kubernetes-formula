@@ -2,7 +2,6 @@
 {%- from tplroot ~ "/map.jinja" import etcd with context -%}
 {%- from tplroot ~ "/vars.jinja" import
     package_dir, package_source, package_source_hash,
-    etcd_peers,
     etcd_etc_dir, etcd_ssl_dir,
     etcd_data_dir,
     etcd_ca_cert_path, etcd_ca_key_path,
@@ -10,7 +9,9 @@
     etcd_bin_path, etcdctl_bin_path
 with context -%}
 {%- from "kubernetes/vars.jinja" import
+    k8s,
     node_role,
+    kubernetes_ca_cert_path, kubernetes_ca_key_path,
     kubernetes_ssl_cert_days_valid, kubernetes_ssl_cert_days_remaining
 -%}
 {%- from "common/vars.jinja" import
@@ -21,10 +22,7 @@ with context -%}
 {%- set etcd_ssl_key_usage = 'clientAuth, serverAuth' if node_role == 'master' else 'clientAuth' -%}
 {%- set etcd_ssl_subject_CN = node_host -%}
 {%- set etcd_ssl_subject_O = None -%}
-{%- from "kubernetes/macros.jinja" import
-    generatesanfrompeers
--%}
-{%- set etcd_ssl_subject_SAN = generatesanfrompeers(etcd_peers) if node_role == 'master' else 'IP:' + node_ip4 -%}
+{%- set etcd_ssl_subject_SAN = 'DNS:localhost, IP:127.0.0.1, DNS:' + node_host + ', IP:' + node_ip4 -%}
 {%- from "kubernetes/macros.jinja" import
     kubepkicertvalid, kubepkicert, kubepkikey
 -%}
@@ -41,24 +39,34 @@ include:
   - flannel/cmd
   - .dirs
 
-{{ etcd_ca_cert_path }}:
+etcd.ca-cert:
   x509.pem_managed:
+    - name: {{ etcd_ca_cert_path }}
     - mode: 644
     - user: root
     - text: |
+{%- if etcd.cluster.ca_cert %}
         {{ etcd.cluster.ca_cert|indent(8) }}
+{%- else %}
+        {{ k8s.ca_cert|indent(8) }}
+{%- endif %}
     - require:
 {{ Python3_M2Crypto() }}
       - file: {{ etcd_ssl_dir }}
     - require_in:
-      - x509: {{ etcd_ca_key_path }}
+      - x509: etcd.ca-key
 
-{{ etcd_ca_key_path }}:
+etcd.ca-key:
   x509.pem_managed:
+    - name: {{ etcd_ca_key_path }}
     - mode: 600
     - user: root
     - text: |
+{%- if etcd.cluster.ca_key %}
         {{ etcd.cluster.ca_key|indent(8) }}
+{%- else %}
+        {{ k8s.ca_key|indent(8) }}
+{%- endif %}
     - require:
 {{ Python3_M2Crypto() }}
       - file: {{ etcd_ssl_dir }}
@@ -66,10 +74,12 @@ include:
       - x509: etcd.crt
     - order: first
 
+{%- if node_role in ['node', 'node-proxier'] %}
 {{ etcd_ca_key_path }}-delete:
   file.absent:
     - name: {{ etcd_ca_key_path }}
     - order: last
+{%- endif %}
 
 {{ kubepkicertvalid('etcd', etcd_ssl_cert_path, kubernetes_ssl_cert_days_remaining) }}
 

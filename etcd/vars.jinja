@@ -1,5 +1,8 @@
 {%- set tplroot = tpldir.split('/')[0] -%}
 {%- from tplroot ~ "/map.jinja" import etcd with context -%}
+{%- from "kubernetes/vars.jinja" import
+    kubernetes_ca_cert_path, kubernetes_ca_key_path
+-%}
 {%- from "common/vars.jinja" import
     node_kernel_lower, node_osarch
 -%}
@@ -13,17 +16,13 @@
 {%- set etcd_bin_path = etcd.install_dir + '/etcd' -%}
 {%- set etcdctl_bin_path = etcd.install_dir + '/etcdctl' -%}
 
-{%- set etcd_endpoints = etcd.endpoints -%}
-{%- set etcd_peers = etcd.cluster.peers -%}
-{%- set etcd_default_scheme = 'https://' -%}
-
 {%- set etcd_etc_dir = etcd.etc_dir -%}
 {%- set etcd_ssl_dir = etcd_etc_dir + etcd.ssl_dir -%}
 
 {%- set etcd_data_dir = etcd.data_dir -%}
 
-{%- set etcd_ca_cert_path = etcd_ssl_dir + '/ca.crt' -%}
-{%- set etcd_ca_key_path = etcd_ssl_dir + '/ca.key' -%}
+{%- set etcd_ca_cert_path = etcd_ssl_dir + '/ca.crt' if etcd.cluster.ca_cert else kubernetes_ca_cert_path -%}
+{%- set etcd_ca_key_path  = etcd_ssl_dir + '/ca.key' if etcd.cluster.ca_key  else kubernetes_ca_key_path -%}
 
 {%- set etcd_ssl_cert_path = etcd_ssl_dir + '/etcd.crt' -%}
 {%- set etcd_ssl_key_path  = etcd_ssl_dir + '/etcd.key' -%}

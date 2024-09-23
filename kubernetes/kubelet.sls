@@ -8,6 +8,7 @@
     apiserver_url, apiserver_healthz_url,
     kubelet_healthz_url,
     kubernetes_ssl_cert_days_valid, kubernetes_ssl_cert_days_remaining,
+    kubernetes_root_ca_file,
     kubernetes_ca_cert_path, kubernetes_ca_key_path,
     kube_admin_kubeconfig,
     component_ssl_cert_path, component_ssl_key_path,
@@ -111,14 +112,14 @@ include:
     - request_interval: 1
     - status: 200
     - onchanges:
-      - service: {{ component }}.service-running
+      - service: {{ component }}.service-running #}
     - require_in:
       - cmd: kubectl label node {{ node_host }} node-role.kubernetes.io/master= --overwrite=true
 
 kubectl label node {{ node_host }} node-role.kubernetes.io/master= --overwrite=true:
   cmd.run:
     - onlyif:
-      - curl --silent --output /dev/null --cacert {{ kubernetes_ca_cert_path }} {{ apiserver_healthz_url }}
+      - curl --silent --output /dev/null --cacert {{ kubernetes_root_ca_file }} {{ apiserver_healthz_url }}
       - kubectl get node {{ node_host }} -o json | jq -e '.metadata.labels | has("node-role.kubernetes.io/master") | not'
     - require:
       - pkg: curl

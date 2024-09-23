@@ -1,6 +1,5 @@
 {%- from tplroot ~ "/map.jinja" import etcd with context -%}
 {%- from tplroot ~ "/vars.jinja" import
-    etcd_peers, etcd_default_scheme,
     etcd_data_dir,
     etcd_ca_cert_path,
     etcd_ssl_cert_path, etcd_ssl_key_path,
@@ -27,25 +26,24 @@ ExecStart={{ etcd_bin_path }} \
     --enable-v2 \
 {%- endif %}
     --name {{ node_host }} \
-    --advertise-client-urls {{ etcd_default_scheme }}{{ node_ip4 }}:2379 \
+    --advertise-client-urls https://{{ node_ip4 }}:2379 \
     --data-dir /var/local/etcd \
-    --listen-client-urls {{ etcd_default_scheme }}{{ node_ip4 }}:2379 \
+    --listen-client-urls https://{{ node_ip4 }}:2379 \
     --trusted-ca-file {{ etcd_ca_cert_path }} \
     --client-cert-auth \
     --cert-file {{ etcd_ssl_cert_path }} \
-    --key-file {{ etcd_ssl_key_path }}{% if etcd_peers|length >= 1 %} \
-    --listen-peer-urls {{ etcd_default_scheme }}{{ node_ip4 }}:2380 \
+    --key-file {{ etcd_ssl_key_path }} \
+    --listen-peer-urls https://{{ node_ip4 }}:2380 \
     --peer-trusted-ca-file {{ etcd_ca_cert_path }} \
     --peer-client-cert-auth \
     --peer-cert-file {{ etcd_ssl_cert_path }} \
     --peer-key-file {{ etcd_ssl_key_path }} \
     --initial-cluster-token {{ etcd.cluster.name }} \
-    --initial-cluster {% for peer in etcd_peers -%}
-        {{ peer['name'] }}={{ etcd_default_scheme }}{{ peer['ip'] }}:2380{% if not loop.last %},{% endif %}
+    --initial-cluster {% for server, addrs in salt['mine.get']('roles:kube-master', 'kube_master_ip_addrs', tgt_type='grain')|dictsort() -%}
+        {{ server.split('.')[0] }}=https://{{ addrs[0] }}:2380{% if not loop.last %},{% endif %}
   {%- endfor %} \
-    --initial-advertise-peer-urls {{ etcd_default_scheme }}{{ node_ip4 }}:2380 \
+    --initial-advertise-peer-urls https://{{ node_ip4 }}:2380 \
     --initial-cluster-state new
-{%- endif %}
 Restart=on-failure
 RestartSec=10
 LimitNOFILE=infinity

@@ -11,6 +11,7 @@
     apiserver_healthz_url,
     kubernetes_etc_dir,
     kubernetes_ssl_cert_days_valid, kubernetes_ssl_cert_days_remaining,
+    kubernetes_root_ca_file,
     kubernetes_ca_cert_path, kubernetes_ca_key_path,
     kubernetes_sa_key_path, kubernetes_sa_pub_path,
     kube_admin_kubeconfig,
@@ -83,7 +84,7 @@ include:
     - wait_for: 30
     - request_interval: 1
     - status: 200
-    - ca_bundle: {{ kubernetes_ca_cert_path }}
+    - ca_bundle: {{ kubernetes_root_ca_file }}
     - onchanges:
       - service: {{ component }}.service-running
     - require_in:

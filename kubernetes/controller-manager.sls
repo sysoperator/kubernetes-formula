@@ -8,6 +8,7 @@
     package_flavor,
     apiserver_url,
     kubernetes_ssl_cert_days_valid, kubernetes_ssl_cert_days_remaining,
+    kubernetes_fullchain_ca_cert_path,
     kubernetes_ca_cert_path, kubernetes_ca_key_path,
     kubernetes_sa_key_path, kubernetes_sa_pub_path,
     kubernetes_ssl_dir,
@@ -66,6 +67,9 @@ include:
     - name: {{ component }}
     - watch:
       - x509: {{ kubernetes_sa_key_path }}
+{%- if k8s.root_ca_cert %}
+      - file: {{ kubernetes_fullchain_ca_cert_path }}
+{%- endif %}
       - x509: {{ kubernetes_ca_cert_path }}
 {%- if k8s.x509_signers_enabled %}
       - x509: {{ kubernetes_ca_key_path }}

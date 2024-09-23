@@ -7,6 +7,7 @@
     apiserver_url,
     kubernetes_ssl_dir,
     kubernetes_ssl_cert_days_valid, kubernetes_ssl_cert_days_remaining,
+    kubernetes_fullchain_ca_cert_path,
     kubernetes_ca_cert_path, kubernetes_ca_key_path,
     kubernetes_sa_key_path, kubernetes_sa_pub_path,
     kubelet_client_ssl_cert_path, kubelet_client_ssl_key_path,
@@ -71,6 +72,19 @@ include:
       - x509: {{ kubernetes_sa_key_path }}
 {% endif %}
 
+{%- if node_role == 'master' and k8s.root_ca_cert %}
+{{ kubernetes_fullchain_ca_cert_path }}:
+  file.managed:
+    - mode: 644
+    - user: root
+    - group: root
+    - contents: |
+        {{ k8s.ca_cert|indent(8) }}
+        {{ k8s.root_ca_cert|indent(8) }}
+    - require:
+      - file: {{ kubernetes_ssl_dir }}
+{%- endif %}
+
 {{ kubernetes_ca_cert_path }}:
   x509.pem_managed:
     - mode: 644
@@ -83,6 +97,10 @@ include:
       - file: {{ kubernetes_ssl_dir }}
     - require_in:
       - x509: {{ kubernetes_ca_key_path }}
+{%- if k8s.front_proxy_ca_cert %}
+      - x509: front-proxy-client.crt
+{%- endif %}
+
 
 {{ kubernetes_ca_key_path }}:
   x509.pem_managed:
@@ -139,6 +157,7 @@ include:
 
 {{ kubepkikey('kube-admin', kube_admin_ssl_key_path) }}
 
+{%- if k8s.front_proxy_ca_cert %}
 {{ front_proxy_ca_cert_path }}:
   x509.pem_managed:
     - mode: 644
@@ -169,6 +188,7 @@ include:
   file.absent:
     - name: {{ front_proxy_ca_key_path }}
     - order: last
+{%- endif %}
 
 {{ kubepkicertvalid('front-proxy-client', front_proxy_client_ssl_cert_path, kubernetes_ssl_cert_days_remaining) }}
 

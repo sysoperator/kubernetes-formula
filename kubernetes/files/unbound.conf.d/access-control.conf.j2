@@ -1,0 +1,9 @@
+{%- from tplroot ~ "/vars.jinja" import
+    kubernetes_networks
+with context -%}
+{%- set interface = salt['network.default_route']()[0].get('interface') %}
+{%- set local_network = salt['network.ip_networks'](interface=interface) -%}
+server:
+	access-control: 127.0.0.0/8 allow
+	access-control: {{ local_network|first }} allow
+	access-control: {{ kubernetes_networks.pod_network_cidr }} allow

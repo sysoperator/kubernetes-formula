@@ -11,13 +11,10 @@
     kubernetes_sa_key_path, kubernetes_sa_pub_path,
     kubelet_client_ssl_cert_path, kubelet_client_ssl_key_path,
     front_proxy_ca_cert_path, front_proxy_client_ssl_cert_path, front_proxy_client_ssl_key_path,
-    component_ssl_cert_path, component_ssl_key_path
-with context -%}
-{%- from "etcd/vars.jinja" import
-    etcd_endpoints,
+    component_ssl_cert_path, component_ssl_key_path,
     etcd_ca_cert_path,
     etcd_ssl_cert_path, etcd_ssl_key_path
--%}
+with context -%}
 {%- from "common/vars.jinja" import
     node_ip4
 -%}
@@ -36,7 +33,7 @@ ExecStart={{ component_bin_path }} \
 {%- if 'allow_privileged' in k8s.security %}
     --allow-privileged=true \
 {%- endif %}
-    --apiserver-count={{ etcd_endpoints|length }} \
+    --apiserver-count={{ salt['mine.get']('roles:kube-master', 'kube_master_ip_addrs', tgt_type='grain')|length }} \
     --authorization-mode={% for mode in k8s.authorization_mode -%}
         {{ mode }}{% if not loop.last %},{% endif %}
 {%- endfor %} \
@@ -66,7 +63,9 @@ ExecStart={{ component_bin_path }} \
   ,{{ controller }}
   {%- endfor %}
 {%- endif %} \
-    --etcd-servers={{ etcd_endpoints|join(',') }} \
+    --etcd-servers={% for server, addrs in salt['mine.get']('roles:kube-master', 'kube_master_ip_addrs', tgt_type='grain')|dictsort() -%}
+        https://{{ addrs[0] }}:2379{% if not loop.last %},{% endif %}
+  {%- endfor %} \
     --etcd-cafile={{ etcd_ca_cert_path }} \
     --etcd-certfile={{ etcd_ssl_cert_path }} \
     --etcd-keyfile={{ etcd_ssl_key_path }} \
@@ -99,6 +98,7 @@ ExecStart={{ component_bin_path }} \
     --logtostderr=true
 {%- endif %}
 Restart=on-failure
+RestartSec=5
 Type=notify
 LimitNOFILE=65536
 

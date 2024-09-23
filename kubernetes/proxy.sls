@@ -25,6 +25,7 @@ with context -%}
 
 include:
   - systemd/cmd
+  - debian/packages/iptables
   - debian/packages/conntrack
   - debian/packages/ipset
   - debian/sysctl/ip-forward
@@ -75,6 +76,7 @@ include:
 {% if node_role == 'node' %}
       - file: /etc/haproxy/haproxy.cfg
 {% endif %}
+      - pkg: iptables
       - pkg: conntrack
       - pkg: ipset
 

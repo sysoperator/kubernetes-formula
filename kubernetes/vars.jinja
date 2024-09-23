@@ -1,5 +1,7 @@
 {%- set tplroot = tpldir.split('/')[0] -%}
 {%- from tplroot ~ "/map.jinja" import kubernetes with context -%}
+{%- from "etcd/map.jinja" import etcd with context -%}
+
 {%- from "common/vars.jinja" import
     node_roles, node_kernel_lower, node_osarch,
     node_fqdn, node_host, node_ip4
@@ -65,10 +67,12 @@
 
 {%- set kubernetes_ssl_cert_days_valid = 365 -%}
 {%- set kubernetes_ssl_cert_days_remaining = 30 -%}
+{%- set kubernetes_fullchain_ca_cert_path = kubernetes_ssl_dir + '/fullchain.crt' -%}
 {%- set kubernetes_ca_cert_path = kubernetes_ssl_dir + '/ca.crt' -%}
 {%- set kubernetes_ca_key_path = kubernetes_ssl_dir + '/ca.key' -%}
 {%- set kubernetes_sa_key_path = kubernetes_ssl_dir + '/sa.key' -%}
 {%- set kubernetes_sa_pub_path = kubernetes_ssl_dir + '/sa.pub' -%}
+{%- set kubernetes_root_ca_file = kubernetes_fullchain_ca_cert_path if k8s.root_ca_cert else kubernetes_ca_cert_path %}
 
 {%- set kubelet_healthz_host = '127.0.0.1' -%}
 {%- set kubelet_healthz_port = 10248|string -%}
@@ -89,8 +93,8 @@
 {%- set kube_admin_ssl_subject_CN = 'kube-admin' -%}
 {%- set kube_admin_ssl_subject_O = 'system:masters' -%}
 
-{%- set front_proxy_ca_cert_path = kubernetes_ssl_dir + '/front-proxy-ca.crt' -%}
-{%- set front_proxy_ca_key_path = kubernetes_ssl_dir + '/front-proxy-ca.key' -%}
+{%- set front_proxy_ca_cert_path = kubernetes_ssl_dir + '/' + ('front-proxy-' if k8s.front_proxy_ca_cert else '') + 'ca.crt' -%}
+{%- set front_proxy_ca_key_path  = kubernetes_ssl_dir + '/' + ('front-proxy-' if k8s.front_proxy_ca_key  else '') + 'ca.key' -%}
 {%- set front_proxy_client_ssl_cert_path = kubernetes_ssl_dir + '/front-proxy-client.crt' -%}
 {%- set front_proxy_client_ssl_key_path = kubernetes_ssl_dir + '/front-proxy-client.key' -%}
 {%- set front_proxy_client_ssl_subject_CN = 'front-proxy-client' -%}
@@ -105,3 +109,14 @@
 
 {%- set clusterrolebinding_system_kubelet_api_admin = 'system:kubelet-api-admin' -%}
 {%- set clusterrolebinding_system_kubelet_api_admin_path = kubernetes_manifests_dir + '/' + clusterrolebinding_system_kubelet_api_admin + '.yaml' -%}
+
+{%- set unbound_log_file = "/var/log/unbound/unbound.log" -%}
+{%- set unbound_log_verbosity = 1 -%}
+
+{%- set etcd_etc_dir = etcd.etc_dir -%}
+{%- set etcd_ssl_dir = etcd_etc_dir + etcd.ssl_dir -%}
+
+{%- set etcd_ca_cert_path = etcd_ssl_dir + '/ca.crt' if etcd.cluster.ca_cert else kubernetes_ca_cert_path -%}
+
+{%- set etcd_ssl_cert_path = etcd_ssl_dir + '/etcd.crt' -%}
+{%- set etcd_ssl_key_path  = etcd_ssl_dir + '/etcd.key' -%}

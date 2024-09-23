@@ -12,6 +12,7 @@ with context -%}
 -%}
 
 include:
+  - debian/packages/iptables
   - systemd/cmd
 
 flanneld:
@@ -24,6 +25,12 @@ flanneld:
     - require_in:
       - file: flannel.service
 
+/etc/systemd/network/10-flannel.link:
+  file.managed:
+    - source: salt://{{ tplroot }}/files/systemd/network/10-flannel.link
+    - require_in:
+      - service: flannel.service-enabled
+
 flannel.service:
   file.managed:
     - name: /lib/systemd/system/flannel.service
@@ -33,6 +40,7 @@ flannel.service:
         tpldir: {{ tpldir }}
         tplroot: {{ tplroot }}
     - require_in:
+      - pkg: iptables
       - service: flannel.service-enabled
 {%- if salt['pkg.version_cmp'](kubernetes_version, 'v1.24.0') < 0 %}
   {%- if 'kube-node-proxier' not in node_roles %}

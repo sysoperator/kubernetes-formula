@@ -1,0 +1,6 @@
+{%- from "common/vars.jinja" import
+    node_ip4
+-%}
+server:
+	interface: 127.0.0.1
+	interface: {{ node_ip4 }}

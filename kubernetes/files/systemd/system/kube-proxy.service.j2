@@ -31,6 +31,7 @@ ExecStart={{ component_bin_path }} \
     --logtostderr=true
 {%- endif %}
 Restart=on-failure
+RestartSec=5
 LimitNOFILE=65536
 
 [Install]
