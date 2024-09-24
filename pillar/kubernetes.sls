@@ -60,17 +60,10 @@ kubernetes:
         #  cert: |
         #  key: |
       log_debug: False
-      root_ca_cert: |
-%ROOT CA CERT%
-      ca_cert: |
-%CA CERT%
-      ca_key: |
-%CA KEY%
-      service_account_signing_key: |
-%SA KEY%
-      service_account_key: |
-%SA PUB%
-      front_proxy_ca_cert: |
-%PROXY CA CERT%
-      front_proxy_ca_key: |
-%PROXY CA KEY%
+      root_ca_cert:
+      ca_cert:
+      ca_key:
+      service_account_signing_key:
+      service_account_key:
+      front_proxy_ca_cert:
+      front_proxy_ca_key:
