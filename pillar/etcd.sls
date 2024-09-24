@@ -10,7 +10,5 @@ etcd:
     cluster:
       name: etcd-cluster
       initial_cluster: True
-      ca_cert: |
-%CA CERT%
-      ca_key: |
-%CA KEY%
+      ca_cert:
+      ca_key:
