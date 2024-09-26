@@ -10,6 +10,7 @@ Kubernetes cluster deployment formula.
 * [systemd](../../../systemd-formula)
 * [debian](../../../debian-formula)
 * [common](../../../salt-common)
+* [docker.repository](../../../../docker-formula/blob/master/docker/repository.sls)
 
 
 ## Pre-requisities
