@@ -13,6 +13,19 @@ Kubernetes cluster deployment formula.
 * [docker.repository](../../../docker-formula/blob/master/docker/repository.sls)
 
 
+## Components
+
+- Core
+  - [kubernetes](https://github.com/kubernetes/kubernetes) v1.29.9
+  - [etcd](https://github.com/etcd-io/etcd) v3.5.15
+  - [containerd](https://containerd.io/) v1.6.26
+  - [crictl](https://github.com/kubernetes-sigs/cri-tools) v1.29.0
+
+- Network Plugin
+  - [cni-plugins](https://github.com/containernetworking/plugins) v1.5.1
+  - [flannel](https://github.com/flannel-io/flannel) v0.25.7
+
+
 ## Pre-requisities
 
 ### Roles

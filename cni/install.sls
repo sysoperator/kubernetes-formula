@@ -5,6 +5,8 @@
     cni_etc_dir, cni_plugins_dir
 with context -%}
 
+{% set cni_installed_version = salt['cmd.shell']('test -d /opt/cni/bin && /opt/cni/bin/dummy 2>&1 | grep -m 1 -o '"'"'[^ ]*$'"'"'') %}
+
 include:
   - debian/packages/ca-certificates
   - debian/packages/bridge-utils
@@ -30,6 +32,9 @@ cni-plugins-install:
     - user: root
     - group: root
     - keep: True
+{% if salt['pkg.version_cmp'](cni.source_version, cni_installed_version|default(cni.source_version, true)) > 0 %}
+    - overwrite: True
+{% endif %}
     - require:
       - pkg: ca-certificates
       - pkg: bridge-utils

@@ -1,8 +1,8 @@
 flannel:
   lookup:
     source_url: https://github.com/flannel-io/flannel/releases/download
-    source_version: v0.25.0
+    source_version: v0.25.7
     source_hash:
-      amd64: sha256=771dbf46ebbd0139f983faec94e34272e393fa09af086cab81d34cbf821acbe6
-      arm64: sha256=98734da8baf89c80d4bc8f8699182f85e69783e212171fb3da7c004d9d3986e2
+      amd64: sha256=5901b213bd94f5797eb852f8c9b68c885b46bc2f9fe32f96dc113351b7ee378a
+      arm64: sha256=e2eefde136ed30a9903626dd74e2cfee9d54875dfc0d6f2fbbd65310a89c0cd8
     install_dir: /usr/local/bin

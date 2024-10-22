@@ -24,7 +24,7 @@ Documentation=https://github.com/kubernetes/kubernetes
 {%- if node_role == 'master' %}
 After=kube-apiserver.service kube-proxy.service
 {% else %}
-After=flannel.service haproxy.service kube-proxy.service
+After={%- if k8s.single_node_cluster != true %}flannel.service {% endif -%} haproxy.service kube-proxy.service
 {% endif -%}
 
 [Service]

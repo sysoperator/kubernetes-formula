@@ -36,7 +36,9 @@ include:
   - debian/packages/python3-openssl
   - systemd/cmd
   - kubernetes/cmd
+{%- if k8s.single_node_cluster != true %}
   - flannel/cmd
+{%- endif %}
   - .dirs
 
 etcd.ca-cert:
