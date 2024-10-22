@@ -3,22 +3,25 @@
 {%- set component_bin_path = kubernetes.install_dir + '/proxy' -%}
 {%- from tplroot ~ "/vars.jinja" import
     k8s,
+    kubernetes_networks,
     component_kubeconfig
 with context -%}
 
 [Unit]
 Description=Kubernetes Proxy
 Documentation=https://github.com/kubernetes/kubernetes
-After=kube-apiserver.service flannel.service haproxy.service
+After=kube-apiserver.service{%- if k8s.single_node_cluster != true %} flannel.service{%- endif %} haproxy.service
 
 [Service]
+{%- if k8s.single_node_cluster != true %}
 EnvironmentFile=-/run/flannel/subnet.env
+{%- endif %}
 User=root
 ExecStart={{ component_bin_path }} \
     --kubeconfig={{ component_kubeconfig }} \
     --healthz-bind-address=127.0.0.1:10256 \
     --metrics-bind-address=127.0.0.1:10249 \
-    --cluster-cidr=${FLANNEL_NETWORK} \
+    --cluster-cidr={%- if k8s.single_node_cluster != true %}${FLANNEL_NETWORK}{%- else %}{{ kubernetes_networks.pod_network_cidr }}{%- endif %} \
     --proxy-mode=iptables \
 {%- if salt['pkg.version_cmp'](kubernetes.source_version, 'v1.24.0') >= 0 %}
     --masquerade-all \

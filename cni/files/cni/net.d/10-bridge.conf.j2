@@ -4,8 +4,8 @@
     cni_network_name, cni_bridge_name
 with context -%}
 {%- from "kubernetes/map.jinja" import kubernetes with context -%}
-{%- set node_pod_network_cidr = salt['cmd.shell']('grep FLANNEL_SUBNET= /run/flannel/subnet.env | cut -d= -f2')|network_address -%}
-{%- set node_pod_network_mtu = salt['cmd.shell']('grep FLANNEL_MTU= /run/flannel/subnet.env | cut -d= -f2')|int -%}
+{%- set node_pod_network_cidr = salt['cmd.shell']('test -d /run/flannel && grep FLANNEL_SUBNET= /run/flannel/subnet.env | cut -d= -f2')|default(kubernetes.k8s.networks.pod_network_cidr, true)|network_address -%}
+{%- set node_pod_network_mtu  = salt['cmd.shell']('test -d /run/flannel && grep FLANNEL_MTU= /run/flannel/subnet.env | cut -d= -f2')|default(1500, true)|int -%}
 
 {
   "cniVersion": "0.3.1",

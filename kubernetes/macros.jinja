@@ -1,6 +1,7 @@
 {%- set tplroot = tpldir.split('/')[0] -%}
 {%- from tplroot ~ "/map.jinja" import kubernetes with context -%}
 {%- from tplroot ~ "/vars.jinja" import
+    k8s,
     node_role
 with context -%}
 {%- from "debian/packages/macros.jinja" import
@@ -9,6 +10,14 @@ with context -%}
 {%- from "common/vars.jinja" import
     nobody_groupname
 -%}
+
+{%- set watch_in_modules = [] -%}
+{%- if node_role == 'master' -%}
+	{%- set _ = watch_in_modules.append('kube-apiserver.service-restart') -%}
+{%- endif -%}
+{%- if k8s.single_node_cluster != true %}
+	{%- set _ = watch_in_modules.append('flannel.service-restart') -%}
+{%- endif -%}
 
 {%- macro kubecomponentbinary(component, component_source, component_source_hash, component_bin_path, package_flavor='server', is_service=True) -%}
 {{ component }}:
@@ -88,11 +97,12 @@ kubernetes-{{ package_flavor }}-download:
       - tls: {{ name }}.crt-valid
   {%- endif %}
   {%- if name == 'etcd' %}
+    {%- if watch_in_modules|length > 0 %}
     - watch_in:
-    {%- if node_role == 'master' %}
-      - module: kube-apiserver.service-restart
-    {%- endif %}
-      - module: flannel.service-restart
+      {% for module in watch_in_modules -%}
+	  - module: {{ module }}
+      {% endfor -%}
+	{%- endif %}
   {%- endif %}
 {%- endmacro -%}
 

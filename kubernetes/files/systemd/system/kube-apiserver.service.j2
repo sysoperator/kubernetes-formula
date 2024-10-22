@@ -22,7 +22,7 @@ with context -%}
 [Unit]
 Description=Kubernetes API Server
 Documentation=https://github.com/kubernetes/kubernetes
-After=network.target etcd.service flannel.service
+After=network.target etcd.service {%- if k8s.single_node_cluster != true %} flannel.service{%- endif %}
 
 [Service]
 User=root

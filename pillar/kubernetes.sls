@@ -2,12 +2,13 @@
 kubernetes:
   lookup:
     source_url: https://storage.googleapis.com/kubernetes-release/release
-    source_version: v1.28.13
+    source_version: v1.29.9
     install_dir: /usr/local/bin
     k8s:
       etc_dir: /etc/kubernetes
       ssl_dir: /pki
       manifests_dir: /manifests
+      single_node_cluster: False
       apiserver:
         external_domain: kubernetes.example.com
         cluster_ip: 172.16.0.1
@@ -30,7 +31,10 @@ kubernetes:
           # Default kube-dns svc IP
           - 172.16.0.2
       networks:
+        # Multi node:
         pod_network_cidr: 172.16.128.0/17
+        # Single node:
+        #pod_network_cidr: 172.16.227.0/24
         svc_network_cidr: 172.16.0.0/20
       authorization_mode:
         - Node
