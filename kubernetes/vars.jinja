@@ -53,6 +53,7 @@
 {%- set apiserver_hostport = apiserver_host + ':' + apiserver_port -%}
 {%- set apiserver_url = kubernetes_default_scheme + apiserver_hostport -%}
 {%- set apiserver_healthz_url = apiserver_url + '/healthz' -%}
+{%- set apiserver_service_node_port_range = k8s.apiserver.service_node_port_range -%}
 
 {%- set kubernetes_networks = k8s.networks -%}
 {%- set kubernetes_runtime_config = k8s.runtime_config if k8s.runtime_config is not none else {} -%}
