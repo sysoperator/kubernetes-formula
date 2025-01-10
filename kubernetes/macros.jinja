@@ -76,7 +76,7 @@ kubernetes-{{ package_flavor }}-download:
     - user: root
     - signing_cert: {{ ca_path }}
     - signing_private_key: {{ ca_key_path }}
-    - public_key: {{ key_path }}
+    - private_key: {{ key_path }}
     - CN: {{ subject_CN }}
   {%- if subject_O %}
     - O: {{ subject_O }}

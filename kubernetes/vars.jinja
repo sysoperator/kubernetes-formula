@@ -65,8 +65,8 @@
 {%- set kubernetes_ssl_dir = kubernetes_etc_dir + k8s.ssl_dir -%}
 {%- set kubernetes_manifests_dir = kubernetes_etc_dir + k8s.manifests_dir -%}
 
-{%- set kubernetes_ssl_cert_days_valid = 365 -%}
-{%- set kubernetes_ssl_cert_days_remaining = 30 -%}
+{%- set kubernetes_ssl_cert_days_valid = k8s.ssl_cert_days_valid if k8s.ssl_cert_days_valid else 365 -%}
+{%- set kubernetes_ssl_cert_days_remaining = k8s.ssl_cert_days_remaining if k8s.ssl_cert_days_remaining else 30 -%}
 {%- set kubernetes_fullchain_ca_cert_path = kubernetes_ssl_dir + '/fullchain.crt' -%}
 {%- set kubernetes_ca_cert_path = kubernetes_ssl_dir + '/ca.crt' -%}
 {%- set kubernetes_ca_key_path = kubernetes_ssl_dir + '/ca.key' -%}

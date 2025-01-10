@@ -4,6 +4,7 @@
 {%- from tplroot ~ "/vars.jinja" import
     k8s,
     apiserver_port,
+    apiserver_service_node_port_range,
     kubernetes_networks, kubernetes_runtime_config, kubernetes_feature_gates,
     kubernetes_admission_controllers,
     kubernetes_etc_dir, kubernetes_ssl_dir,
@@ -72,9 +73,12 @@ ExecStart={{ component_bin_path }} \
 {%- if kubernetes_runtime_config|length > 0 %}
     --runtime-config={% for resource in kubernetes_runtime_config -%}
         {{ resource }}{% if not loop.last %},{% endif %}
-{%- endfor %} \
+  {%- endfor %} \
 {%- endif %}
     --service-cluster-ip-range={{ kubernetes_networks.svc_network_cidr }} \
+{%- if apiserver_service_node_port_range %}
+    --service-node-port-range={{ apiserver_service_node_port_range }} \
+{%- endif %}
     --tls-cert-file={{ component_ssl_cert_path }} \
     --tls-private-key-file={{ component_ssl_key_path }} \
     --client-ca-file={{ kubernetes_ca_cert_path }} \

@@ -10,5 +10,6 @@
 {%- set package_source_hash = flannel.source_hash.get(node_osarch) -%}
 
 {%- set flannel_etcd_api = 3 if salt['pkg.version_cmp'](flannel.source_version, 'v0.18.0') > 0 else 2 -%}
+{%- set flannel_public_ip = salt['grains.get']('ip4_interfaces:' + flannel.public_ip_interface)[0] if flannel.public_ip_interface else "" -%}
 
 {%- set flanneld_bin_path = flannel.install_dir + '/flanneld' -%}

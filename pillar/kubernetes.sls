@@ -7,6 +7,10 @@ kubernetes:
     k8s:
       etc_dir: /etc/kubernetes
       ssl_dir: /pki
+      # Default: 365
+      ssl_cert_days_valid:
+      # Default 90
+      ssl_cert_days_remaining:
       manifests_dir: /manifests
       single_node_cluster: False
       apiserver:
@@ -15,6 +19,7 @@ kubernetes:
         default_address: 127.0.0.1
         default_secure_port: 6443
         log_debug_rbac: False
+        service_node_port_range:
       kubelet:
         # Use the container runtime default if empty
         # Possible values are: 'cgroupfs', 'systemd' (default: cgroupfs)
