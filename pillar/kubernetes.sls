@@ -61,7 +61,7 @@ kubernetes:
         # Enable additional Admission Plugins:
         #- PodPreset
         #- ...
-      x509_signers_enabled: True
+      x509_signers_enabled: False
       x509_signers_duration: 720h
       x509_signers:
         # Cert issuers:
