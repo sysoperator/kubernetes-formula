@@ -9,7 +9,7 @@ kubernetes:
       ssl_dir: /pki
       # Default: 365
       ssl_cert_days_valid:
-      # Default 90
+      # Default: 30
       ssl_cert_days_remaining:
       manifests_dir: /manifests
       single_node_cluster: False
@@ -19,6 +19,7 @@ kubernetes:
         default_address: 127.0.0.1
         default_secure_port: 6443
         log_debug_rbac: False
+        # Default: 30000-32767
         service_node_port_range:
       kubelet:
         # Use the container runtime default if empty
