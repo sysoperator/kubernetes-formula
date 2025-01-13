@@ -5,12 +5,14 @@
     flanneld_bin_path
 with context -%}
 {%- from "kubernetes/vars.jinja" import
+    k8s,
     kubernetes_version
 -%}
 {%- from "common/vars.jinja" import
     node_roles
 -%}
 
+{%- if k8s.single_node_cluster != true %}
 include:
   - debian/packages/iptables
   - systemd/cmd
@@ -67,4 +69,5 @@ flannel.service-running:
     - watch_in:
       - service: docker.service-running
   {%- endif %}
+{%- endif %}
 {%- endif %}

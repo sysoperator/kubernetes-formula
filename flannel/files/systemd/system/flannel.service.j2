@@ -1,6 +1,7 @@
 {%- from tplroot ~ "/map.jinja" import flannel with context -%}
 {%- from tplroot ~ "/vars.jinja" import
     flannel_etcd_api,
+    flannel_public_ip,
     flanneld_bin_path
 with context -%}
 {%- from "kubernetes/vars.jinja" import
@@ -46,6 +47,9 @@ ExecStartPre={{ etcdctl_bin_path }} \
         '{"Network": "{{ cluster_networks.pod_network_cidr }}", "Backend": {"Type": "vxlan", "VNI": 1}}'
 {%- endif %}
 ExecStart={{ flanneld_bin_path }} \
+  {%- if flannel_public_ip %}
+    -public-ip={{ flannel_public_ip }} \
+  {%- endif %}
     -etcd-endpoints={% for server, addrs in salt['mine.get']('roles:kube-master', 'kube_master_ip_addrs', tgt_type='grain')|dictsort() -%}
         https://{{ addrs[0] }}:2379{% if not loop.last %},{% endif %}
   {%- endfor %} \

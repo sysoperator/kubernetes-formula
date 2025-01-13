@@ -2,11 +2,15 @@
 kubernetes:
   lookup:
     source_url: https://storage.googleapis.com/kubernetes-release/release
-    source_version: v1.29.9
+    source_version: v1.30.8
     install_dir: /usr/local/bin
     k8s:
       etc_dir: /etc/kubernetes
       ssl_dir: /pki
+      # Default: 365
+      ssl_cert_days_valid:
+      # Default: 30
+      ssl_cert_days_remaining:
       manifests_dir: /manifests
       single_node_cluster: False
       apiserver:
@@ -15,6 +19,8 @@ kubernetes:
         default_address: 127.0.0.1
         default_secure_port: 6443
         log_debug_rbac: False
+        # Default: 30000-32767
+        service_node_port_range:
       kubelet:
         # Use the container runtime default if empty
         # Possible values are: 'cgroupfs', 'systemd' (default: cgroupfs)
@@ -56,7 +62,7 @@ kubernetes:
         # Enable additional Admission Plugins:
         #- PodPreset
         #- ...
-      x509_signers_enabled: True
+      x509_signers_enabled: False
       x509_signers_duration: 720h
       x509_signers:
         # Cert issuers:

@@ -97,10 +97,6 @@ include:
       - file: {{ kubernetes_ssl_dir }}
     - require_in:
       - x509: {{ kubernetes_ca_key_path }}
-{%- if k8s.front_proxy_ca_cert %}
-      - x509: front-proxy-client.crt
-{%- endif %}
-
 
 {{ kubernetes_ca_key_path }}:
   x509.pem_managed:
@@ -120,6 +116,9 @@ include:
       - x509: apiserver-kubelet-client.crt
       - x509: kube-admin.crt
       - x509: kubelet.crt
+  {%- if not k8s.front_proxy_ca_cert %}
+      - x509: front-proxy-client.crt
+  {%- endif %}
 {%- elif node_role == 'node' %}
       - x509: kubelet.crt
 {%- endif %}

@@ -76,7 +76,7 @@ kubernetes-{{ package_flavor }}-download:
     - user: root
     - signing_cert: {{ ca_path }}
     - signing_private_key: {{ ca_key_path }}
-    - public_key: {{ key_path }}
+    - private_key: {{ key_path }}
     - CN: {{ subject_CN }}
   {%- if subject_O %}
     - O: {{ subject_O }}
@@ -110,8 +110,7 @@ kubernetes-{{ package_flavor }}-download:
 {{ name }}.key:
   x509.private_key_managed:
     - name: {{ key_path }}
-    - bits: 2048
-    - verbose: False
+    - keysize: 2048
     - mode: 600
   {%- if key_owner %}
     - user: {{ key_owner }}
