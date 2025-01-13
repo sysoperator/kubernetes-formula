@@ -16,15 +16,14 @@ Kubernetes cluster deployment formula.
 ## Components
 
 - Core
-  - [kubernetes](https://github.com/kubernetes/kubernetes) v1.29.9
-  - [etcd](https://github.com/etcd-io/etcd) v3.5.15
+  - [kubernetes](https://github.com/kubernetes/kubernetes) v1.30.8
+  - [etcd](https://github.com/etcd-io/etcd) v3.5.17
   - [containerd](https://containerd.io/) v1.6.26
-  - [crictl](https://github.com/kubernetes-sigs/cri-tools) v1.29.0
+  - [crictl](https://github.com/kubernetes-sigs/cri-tools) v1.30.0
 
 - Network Plugin
-  - [cni-plugins](https://github.com/containernetworking/plugins) v1.5.1
-  - [flannel](https://github.com/flannel-io/flannel) v0.25.7
-
+  - [cni-plugins](https://github.com/containernetworking/plugins) v1.6.2
+  - [flannel](https://github.com/flannel-io/flannel) v0.26.3
 
 ## Pre-requisities
 
