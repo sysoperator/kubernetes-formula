@@ -28,7 +28,7 @@ include:
   - debian/packages/iptables
   - debian/packages/conntrack
   - debian/packages/ipset
-  - debian/sysctl/ip-forward
+  - sysctl/ip-forward
 {% if node_role == 'node' or 'kube-node-proxier' in node_roles %}
   - .haproxy
 {% endif %}
