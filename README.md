@@ -13,6 +13,7 @@ Kubernetes cluster deployment formula.
   - [crictl](../../../crictl-formula)
   - [containerd](../../../containerd-formula)
   - [debian](../../../debian-formula)
+  - [sysctl](../../../sysctl-formula)
   - [docker.repository](../../../docker-formula/blob/master/docker/repository.sls)
 
 ## Components

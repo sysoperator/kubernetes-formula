@@ -28,7 +28,7 @@ include:
   - debian/packages/iptables
   - debian/packages/conntrack
   - debian/packages/ipset
-  - debian/sysctl/ip-forward
+  - sysctl/ip-forward
 {% if node_role == 'node' or 'kube-node-proxier' in node_roles %}
   - .haproxy
 {% endif %}
@@ -62,6 +62,14 @@ include:
     - contents: |
         {{ kubeconfig(component, apiserver_url, kubernetes_ca_cert_path, component_ssl_cert_path, component_ssl_key_path)|indent(8) }}
 
+xt_conntrack.module-load:
+  file.managed:
+    - name: /etc/modules-load.d/conntrack.conf
+    - contents: |
+        xt_conntrack
+    - watch_in:
+      - module: systemd-modules-load
+
 {{ component }}.service-running:
   service.running:
     - name: {{ component }}
@@ -73,6 +81,7 @@ include:
       - file: {{ component }}
     - require:
       - sysctl: net.ipv4.ip_forward
+      - file: xt_conntrack.module-load
 {% if node_role == 'node' %}
       - file: /etc/haproxy/haproxy.cfg
 {% endif %}
