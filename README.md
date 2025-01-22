@@ -5,17 +5,15 @@ Kubernetes cluster deployment formula.
 
 ## Dependencies
 
-Vars and helpers:
+- Vars and helpers:
+  - [common](../../../../../salt/common)
+  - [systemd](../../../../../salt/systemd)
 
-* [common](../../../../../salt/common)
-* [systemd](../../../../../salt/systemd)
-
-Core modules:
-
-* [crictl](../../../../crictl-formula)
-* [containerd](../../../../containerd-formula)
-* [debian](../../../../debian-formula)
-* [docker.repository](../../../../docker-formula/-/blob/master/docker/repository.sls?ref_type=heads)
+- Core formulas:
+  - [crictl](../../../../crictl-formula)
+  - [containerd](../../../../containerd-formula)
+  - [debian](../../../../debian-formula)
+  - [docker.repository](../../../../docker-formula/-/blob/master/docker/repository.sls?ref_type=heads)
 
 ## Components
 
