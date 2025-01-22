@@ -72,7 +72,21 @@ include:
       - x509: {{ kubernetes_sa_key_path }}
 {% endif %}
 
-{%- if node_role == 'master' and k8s.root_ca_cert %}
+{%- if k8s.root_ca_cert %}
+/usr/local/share/ca-certificates/root.crt:
+  x509.pem_managed:
+    - mode: 644
+    - user: root
+    - group: root
+    - text: |
+        {{ k8s.root_ca_cert|indent(8) }}
+    - require:
+{{ Python3_M2Crypto() }}
+      - pkg: ca-certificates
+    - watch_in:
+      - cmd: update-ca-certificates
+
+  {%- if node_role == 'master' %}
 {{ kubernetes_fullchain_ca_cert_path }}:
   file.managed:
     - mode: 644
@@ -83,6 +97,7 @@ include:
         {{ k8s.root_ca_cert|indent(8) }}
     - require:
       - file: {{ kubernetes_ssl_dir }}
+  {%- endif %}
 {%- endif %}
 
 {{ kubernetes_ca_cert_path }}:
