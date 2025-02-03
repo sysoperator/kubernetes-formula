@@ -11,6 +11,7 @@ with context -%}
 {%- from "kubernetes/vars.jinja" import
     k8s,
     node_role,
+    kubernetes_ssl_dir,
     kubernetes_ca_cert_path, kubernetes_ca_key_path,
     kubernetes_ssl_cert_days_valid, kubernetes_ssl_cert_days_remaining
 -%}
@@ -54,6 +55,9 @@ etcd.ca-cert:
 {%- endif %}
     - require:
 {{ Python3_M2Crypto() }}
+{%- if etcd.cluster.ca_cert != '' %}
+      - file: {{ kubernetes_ssl_dir }}
+{%- endif %}
       - file: {{ etcd_ssl_dir }}
     - require_in:
       - x509: etcd.ca-key
@@ -71,6 +75,9 @@ etcd.ca-key:
 {%- endif %}
     - require:
 {{ Python3_M2Crypto() }}
+{%- if etcd.cluster.ca_cert != '' %}
+      - file: {{ kubernetes_ssl_dir }}
+{%- endif %}
       - file: {{ etcd_ssl_dir }}
     - require_in:
       - x509: etcd.crt

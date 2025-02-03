@@ -4,6 +4,11 @@
     etcd_etc_dir, etcd_ssl_dir
 with context -%}
 
+{%- if etcd.cluster.ca_cert != '' %}
+include:
+  - kubernetes/dirs
+{%- endif %}
+
 {{ etcd_etc_dir }}:
   file.directory:
     - dir_mode: 755
@@ -17,3 +22,4 @@ with context -%}
     - dir_mode: 755
     - user: root
     - makedirs: True
+
