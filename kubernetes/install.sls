@@ -24,17 +24,12 @@ with context -%}
     kubepackagedownload,
     kubepkicertvalid, kubepkicert, kubepkikey
 with context -%}
-{%- from "debian/packages/macros.jinja" import
-    Python3_M2Crypto
--%}
 
 include:
 {% if cluster_dns.override_resolvconf %}
   - debian/dhclient/nodnsupdate
 {% endif %}
   - debian/packages/ca-certificates
-  - debian/packages/python3-m2crypto
-  - debian/packages/python3-openssl
   - systemd/cmd
   - .dirs
 {% if node_role == 'master' %}
@@ -57,7 +52,6 @@ include:
     - text: |
         {{ k8s.service_account_signing_key|indent(8) }}
     - require:
-{{ Python3_M2Crypto() }}
       - file: {{ kubernetes_ssl_dir }}
     - order: first
 
@@ -81,7 +75,6 @@ include:
     - text: |
         {{ k8s.root_ca_cert|indent(8) }}
     - require:
-{{ Python3_M2Crypto() }}
       - pkg: ca-certificates
     - watch_in:
       - cmd: update-ca-certificates
@@ -108,7 +101,6 @@ include:
     - text: |
         {{ k8s.ca_cert|indent(8) }}
     - require:
-{{ Python3_M2Crypto() }}
       - file: {{ kubernetes_ssl_dir }}
     - require_in:
       - x509: {{ kubernetes_ca_key_path }}
@@ -121,7 +113,6 @@ include:
     - text: |
         {{ k8s.ca_key|indent(8) }}
     - require:
-{{ Python3_M2Crypto() }}
       - file: {{ kubernetes_ssl_dir }}
     - require_in:
 {%- if node_role == 'master' %}
@@ -180,7 +171,6 @@ include:
     - text: |
         {{ k8s.front_proxy_ca_cert|indent(8) }}
     - require:
-{{ Python3_M2Crypto() }}
       - file: {{ kubernetes_ssl_dir }}
     - require_in:
       - x509: {{ front_proxy_ca_key_path }}
@@ -193,7 +183,6 @@ include:
     - text: |
         {{ k8s.front_proxy_ca_key|indent(8) }}
     - require:
-{{ Python3_M2Crypto() }}
       - file: {{ kubernetes_ssl_dir }}
     - require_in:
       - x509: front-proxy-client.crt

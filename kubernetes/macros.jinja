@@ -4,9 +4,6 @@
     k8s,
     node_role
 with context -%}
-{%- from "debian/packages/macros.jinja" import
-    Python3_M2Crypto
--%}
 {%- from "common/vars.jinja" import
     nobody_groupname
 -%}
@@ -62,8 +59,10 @@ kubernetes-{{ package_flavor }}-download:
   tls.valid_certificate:
     - name: {{ cert_path }}
     - days: {{ days_remaining }}
+{#
     - require:
       - pkg: python3-openssl
+#}
     - onlyif:
       - test -f {{ cert_path }}
 {%- endmacro -%}
@@ -90,8 +89,6 @@ kubernetes-{{ package_flavor }}-download:
     - days_valid: {{ days_valid }}
     - days_remaining: {{ days_remaining }}
     - backup: True
-    - require:
-{{ Python3_M2Crypto() }}
   {%- if salt['file.file_exists'](cert_path) %}
     - onfail:
       - tls: {{ name }}.crt-valid
@@ -115,9 +112,8 @@ kubernetes-{{ package_flavor }}-download:
   {%- if key_owner %}
     - user: {{ key_owner }}
   {%- endif %}
-    - require:
-{{ Python3_M2Crypto() }}
   {%- if key_owner %}
+    - require:
       - user: {{ key_owner }}-user
   {%- endif %}
     - require_in:

@@ -114,8 +114,7 @@
 {%- set unbound_log_file = "/var/log/unbound/unbound.log" -%}
 {%- set unbound_log_verbosity = 1 -%}
 
-{%- set etcd_etc_dir = etcd.etc_dir -%}
-{%- set etcd_ssl_dir = etcd_etc_dir + etcd.ssl_dir -%}
+{%- set etcd_ssl_dir = etcd.ssl_dir -%}
 
 {%- set etcd_ca_cert_path = etcd_ssl_dir + '/ca.crt' if etcd.cluster.ca_cert else kubernetes_ca_cert_path -%}
 

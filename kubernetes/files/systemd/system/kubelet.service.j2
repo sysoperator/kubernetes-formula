@@ -51,9 +51,12 @@ ExecStart={{ component_bin_path }} \
 {%- endif %}
 {%- if node_role == 'master' %}
     --node-labels="type=controller" \
-    --register-with-taints=node-role.kubernetes.io/master=:NoSchedule \
+  {%- if k8s.single_node_cluster != true %}
+    --register-with-taints=node-role.kubernetes.io/control-plane=:NoSchedule,node-role.kubernetes.io/master=:NoSchedule \
+  {%- endif %}
 {%- endif %}
 {%- if node_role == 'node' %}
+    --node-labels="node-role.kubernetes.io/worker=" \
     --enable-controller-attach-detach=false \
 {%- endif %}
 {%- if salt['pkg.version_cmp'](kubernetes.source_version, 'v1.24.0') < 0 %}

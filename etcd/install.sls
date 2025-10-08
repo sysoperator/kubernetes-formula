@@ -2,7 +2,7 @@
 {%- from tplroot ~ "/map.jinja" import etcd with context -%}
 {%- from tplroot ~ "/vars.jinja" import
     package_dir, package_source, package_source_hash,
-    etcd_etc_dir, etcd_ssl_dir,
+    etcd_ssl_dir,
     etcd_data_dir,
     etcd_ca_cert_path, etcd_ca_key_path,
     etcd_ssl_cert_path, etcd_ssl_key_path,
@@ -27,14 +27,9 @@ with context -%}
 {%- from "kubernetes/macros.jinja" import
     kubepkicertvalid, kubepkicert, kubepkikey
 -%}
-{%- from "debian/packages/macros.jinja" import
-    Python3_M2Crypto
--%}
 
 include:
   - debian/packages/ca-certificates
-  - debian/packages/python3-m2crypto
-  - debian/packages/python3-openssl
   - systemd/cmd
   - kubernetes/cmd
 {%- if k8s.single_node_cluster != true %}
@@ -54,7 +49,6 @@ etcd.ca-cert:
         {{ k8s.ca_cert|indent(8) }}
 {%- endif %}
     - require:
-{{ Python3_M2Crypto() }}
 {%- if etcd.cluster.ca_cert != '' %}
       - file: {{ kubernetes_ssl_dir }}
 {%- endif %}
@@ -74,7 +68,6 @@ etcd.ca-key:
         {{ k8s.ca_key|indent(8) }}
 {%- endif %}
     - require:
-{{ Python3_M2Crypto() }}
 {%- if etcd.cluster.ca_cert != '' %}
       - file: {{ kubernetes_ssl_dir }}
 {%- endif %}

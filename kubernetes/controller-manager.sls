@@ -24,12 +24,8 @@ with context -%}
     kubecomponentbinary,
     kubepkicertvalid, kubepkicert, kubepkikey
 with context -%}
-{%- from "debian/packages/macros.jinja" import
-    Python3_M2Crypto
--%}
 
 include:
-  - debian/packages/python3-m2crypto
   - systemd/cmd
 
 {{ kubecomponentbinary(component, component_source, component_source_hash, component_bin_path) }}
@@ -99,7 +95,6 @@ include:
     - text: |
         {{ signer['cert']|indent(8) }}
     - require:
-{{ Python3_M2Crypto() }}
       - file: {{ kubernetes_ssl_dir }}
     - require_in:
       - x509: {{ kubernetes_ssl_dir }}/{{ signer['name'] }}-ca.key
@@ -112,6 +107,5 @@ include:
     - text: |
         {{ signer['key']|indent(8) }}
     - require:
-{{ Python3_M2Crypto() }}
       - file: {{ kubernetes_ssl_dir }}
 {%- endfor %}

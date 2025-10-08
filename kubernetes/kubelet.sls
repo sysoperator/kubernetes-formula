@@ -3,6 +3,7 @@
 {%- set component = 'kubelet' -%}
 {%- set component_bin_path = kubernetes.install_dir + '/kubelet' -%}
 {%- from tplroot ~ "/vars.jinja" import
+    k8s,
     node_role,
     package_flavor,
     apiserver_url, apiserver_healthz_url,
@@ -105,6 +106,7 @@ include:
       - service: kube-proxy.service-running
 
 {% if node_role == 'master' %}
+  {%- set label_node_role = 'master' if k8s.single_node_cluster != true else 'worker' %}
 {{ component }}-is-ready:
   http.wait_for_successful_query:
     - name: {{ kubelet_healthz_url }}
@@ -112,15 +114,16 @@ include:
     - request_interval: 1
     - status: 200
     - onchanges:
-      - service: {{ component }}.service-running #}
+      - service: {{ component }}.service-running
     - require_in:
-      - cmd: kubectl label node {{ node_host }} node-role.kubernetes.io/master= --overwrite=true
+      - cmd: {{ component }}-label-node
 
-kubectl label node {{ node_host }} node-role.kubernetes.io/master= --overwrite=true:
+{{ component }}-label-node:
   cmd.run:
+    - name: kubectl label node {{ node_host }} node-role.kubernetes.io/control-plane= node-role.kubernetes.io/{{ label_node_role }}= --overwrite=true
     - onlyif:
       - curl --silent --output /dev/null --cacert {{ kubernetes_root_ca_file }} {{ apiserver_healthz_url }}
-      - kubectl get node {{ node_host }} -o json | jq -e '.metadata.labels | has("node-role.kubernetes.io/master") | not'
+      - kubectl get node {{ node_host }} -o json | jq -e '.metadata.labels | [has("node-role.kubernetes.io/control-plane"), has("node-role.kubernetes.io/{{ label_node_role }}")] | all | not'
     - require:
       - pkg: curl
       - pkg: jq
