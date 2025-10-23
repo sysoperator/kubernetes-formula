@@ -15,10 +15,12 @@
 {%- set cluster_networks = k8s.networks -%}
 
 {%- set cluster_dns = k8s.cluster_dns -%}
-{%- set cluster_dns_domain = cluster_dns.domain -%}
-{%- set cluster_dns_cluster_domain = cluster_dns.cluster_domain -%}
-{%- set cluster_dns_search = cluster_dns.search if cluster_dns.search is not none else {} -%}
 {%- set cluster_dns_nameservers = cluster_dns.nameservers -%}
+{%- set cluster_dns_local_domain = cluster_dns.local_domain -%}
+{%- set cluster_dns_cluster_domain = cluster_dns.cluster_domain -%}
+{%- set cluster_dns_include_cluster_domain = cluster_dns.include_cluster_domain -%}
+{%- set cluster_dns_search_suffixes = cluster_dns.search_suffixes if cluster_dns.search_suffixes is not none else [] -%}
+{%- set cluster_dns_options = cluster_dns.options if cluster_dns.options is not none else [] -%}
 
 {%- set package_flavor = 'node' -%}
 

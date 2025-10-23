@@ -26,7 +26,7 @@ with context -%}
 with context -%}
 
 include:
-{% if cluster_dns.override_resolvconf %}
+{% if cluster_dns.override_host_resolvconf %}
   - debian/dhclient/nodnsupdate
 {% endif %}
   - debian/packages/ca-certificates
@@ -202,12 +202,13 @@ include:
 
 {{ kubepackagedownload(package_dir, package_source, package_source_hash, package_flavor) }}
 
-{% if cluster_dns.override_resolvconf %}
+{% if cluster_dns.override_host_resolvconf %}
 /etc/resolv.conf:
   file.managed:
     - source: salt://{{ tplroot }}//files/resolv.conf.j2
     - template: jinja
     - context:
+        tpldir: {{ tpldir }}
         tplroot: {{ tplroot }}
     - require:
       - file: dhclient-nodnsupdate

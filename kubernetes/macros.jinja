@@ -59,10 +59,6 @@ kubernetes-{{ package_flavor }}-download:
   tls.valid_certificate:
     - name: {{ cert_path }}
     - days: {{ days_remaining }}
-{#
-    - require:
-      - pkg: python3-openssl
-#}
     - onlyif:
       - test -f {{ cert_path }}
 {%- endmacro -%}

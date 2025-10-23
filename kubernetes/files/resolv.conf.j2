@@ -1,9 +1,14 @@
 {%- from tplroot ~ "/map.jinja" import kubernetes with context -%}
-{%- from tplroot ~ "/vars.jinja import
-    cluster_dns_domain, cluster_dns_search, cluster_dns_nameservers
+{%- from tplroot ~ "/vars.jinja" import
+    cluster_dns_nameservers,
+    cluster_dns_local_domain,
+    cluster_dns_cluster_domain, cluster_dns_include_cluster_domain,
+    cluster_dns_search_suffixes,
+    cluster_dns_options
 with context -%}
-domain {{ cluster_dns_domain }}
-search{% for domain_suffix in cluster_dns_search %} {{ domain_suffix }}.{% endfor %} {{ cluster_dns_domain }}.
 {% for nameserver in cluster_dns_nameservers -%}
 nameserver {{ nameserver }}
-{%- endfor -%}
+{%- endfor %}
+domain {{ cluster_dns_local_domain }}
+search{% for domain_suffix in cluster_dns_search_suffixes %} {{ domain_suffix }}.{% endfor %}{% if cluster_dns_include_cluster_domain %} {{ cluster_dns_cluster_domain }}.{% endif %} {{ cluster_dns_local_domain }}.
+{% if cluster_dns_options|length > 0 %}options{% for option in cluster_dns_options %} {{ option }}{% endfor %}{% endif %}

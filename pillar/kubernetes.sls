@@ -14,7 +14,7 @@ kubernetes:
       manifests_dir: /manifests
       single_node_cluster: False
       apiserver:
-        external_domain: kubernetes.example.com
+        external_domain: kubernetes.internal
         cluster_ip: 172.16.0.1
         default_address: 127.0.0.1
         default_secure_port: 6443
@@ -26,16 +26,26 @@ kubernetes:
         # Possible values are: 'cgroupfs', 'systemd' (default: cgroupfs)
         cgroup_driver: systemd
       cluster_dns:
-        override_resolvconf: False
-        domain: example.com
-        cluster_domain: cluster.local
-        search:
-          # Search suffixes as list, e.g.:
-          #- foo.bar.com
-          #- baz.com
+        override_host_resolvconf: False
         nameservers:
           # Default kube-dns svc IP
-          - 172.16.0.2
+          - 172.16.0.53
+        local_domain: internal
+        # Do not use .local TLD as cluster domain: https://datatracker.ietf.org/doc/html/rfc6762
+        #   This document specifies that the DNS top-level domain ".local." is a
+        #   special domain with special semantics, namely that any fully
+        #   qualified name ending in ".local." is link-local, and names within
+        #   this domain are meaningful only on the link where they originate.
+        cluster_domain: cluster.local
+        include_cluster_domain: False
+        search_suffixes:
+          # Search suffixes as list, e.g.:
+          #- foo
+          #- bar
+        options:
+          # Additional options as list, e.g.:
+          #- ndots:1
+          #- timeout:10
       networks:
         # Multi node:
         pod_network_cidr: 172.16.128.0/17
