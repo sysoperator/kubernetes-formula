@@ -72,18 +72,6 @@ kubernetes:
         # Enable additional Admission Plugins:
         #- PodPreset
         #- ...
-      x509_signers_enabled: False
-      x509_signers_duration: 720h
-      x509_signers:
-        # Cert issuers:
-        #- name: name
-        #  cert: |
-        #  key: |
       log_debug: False
-      root_ca_cert:
-      ca_cert:
-      ca_key:
       service_account_signing_key:
       service_account_key:
-      front_proxy_ca_cert:
-      front_proxy_ca_key:

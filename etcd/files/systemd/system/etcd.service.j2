@@ -3,6 +3,8 @@
     etcd_data_dir,
     etcd_ca_cert_path,
     etcd_ssl_cert_path, etcd_ssl_key_path,
+    etcd_peer_ca_cert_path,
+    etcd_peer_ssl_cert_path, etcd_peer_ssl_key_path,
     etcd_bin_path
 with context -%}
 {%- from "flannel/vars.jinja" import
@@ -29,15 +31,15 @@ ExecStart={{ etcd_bin_path }} \
     --data-dir /var/local/etcd \
     --listen-client-urls https://{{ node_ip4 }}:2379 \
     --advertise-client-urls https://{{ node_ip4 }}:2379 \
-    --trusted-ca-file {{ etcd_ca_cert_path }} \
     --client-cert-auth \
+    --trusted-ca-file {{ etcd_ca_cert_path }} \
     --cert-file {{ etcd_ssl_cert_path }} \
     --key-file {{ etcd_ssl_key_path }} \
     --listen-peer-urls https://{{ node_ip4 }}:2380 \
-    --peer-trusted-ca-file {{ etcd_ca_cert_path }} \
     --peer-client-cert-auth \
-    --peer-cert-file {{ etcd_ssl_cert_path }} \
-    --peer-key-file {{ etcd_ssl_key_path }} \
+    --peer-trusted-ca-file {{ etcd_peer_ca_cert_path }} \
+    --peer-cert-file {{ etcd_peer_ssl_cert_path }} \
+    --peer-key-file {{ etcd_peer_ssl_key_path }} \
     --initial-cluster-state new \
     --initial-cluster-token {{ etcd.initial_cluster_token|default('etcd-cluster') }} \
     --initial-cluster {% for server, addrs in salt['mine.get']('roles:kube-master', 'kube_master_ip_addrs', tgt_type='grain')|dictsort() -%}
