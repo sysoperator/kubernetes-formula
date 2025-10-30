@@ -11,9 +11,9 @@
     apiserver_healthz_url,
     kubernetes_etc_dir,
     kubernetes_ssl_cert_days_valid, kubernetes_ssl_cert_days_remaining,
-    kubernetes_root_ca_file,
-    kubernetes_ca_cert_path, kubernetes_ca_key_path,
+    kubernetes_ca_cert_path,
     kubernetes_sa_key_path, kubernetes_sa_pub_path,
+    kubernetes_root_ca_file,
     kube_admin_kubeconfig,
     component_ssl_cert_path, component_ssl_key_path,
     component_source, component_source_hash,
@@ -26,9 +26,11 @@ with context -%}
 {%- set component_ssl_subject_O  = None -%}
 {%- set component_ssl_subject_SAN = 'DNS:localhost, IP:127.0.0.1, DNS:kubernetes, DNS:kubernetes.default, DNS:kubernetes.default.svc, DNS:kubernetes.default.svc.' + cluster_dns_cluster_domain + ', IP:' + cluster_ip4 + ', DNS:' + node_fqdn + ', DNS:' + node_host + ', IP:' + node_ip4 + apiserver_external_domain -%}
 {%- from tplroot ~ "/macros.jinja" import
-    kubecomponentbinary,
-    kubepkicertvalid, kubepkicert, kubepkikey
+    kubecomponentbinary
 with context -%}
+{%- from "ca/macros.jinja" import
+    valid_certificate, certificate_private_key, certificate
+-%}
 
 include:
   - systemd/cmd
@@ -65,6 +67,8 @@ include:
     - watch:
       - x509: {{ component }}.crt
       - x509: {{ component }}.key
+      - x509: apiserver-etcd-client.crt
+      - x509: apiserver-etcd-client.key
       - x509: apiserver-kubelet-client.crt
       - x509: apiserver-kubelet-client.key
       - x509: front-proxy-client.crt
@@ -90,23 +94,30 @@ include:
     - require_in:
       - cmd: {{ clusterrolebinding_system_kubelet_api_admin }}
 
-{{ clusterrolebinding_system_kubelet_api_admin_path}}:
+{{ clusterrolebinding_system_kubelet_api_admin_path }}:
   file.managed:
     - source: salt://{{ tplroot }}/files/kubernetes/manifests/{{ clusterrolebinding_system_kubelet_api_admin }}.yaml
-
+    - require_in:
+      - cmd: {{ clusterrolebinding_system_kubelet_api_admin }}
+  
 {{ clusterrolebinding_system_kubelet_api_admin }}:
   cmd.run:
-    - name: kubectl create -f {{ clusterrolebinding_system_kubelet_api_admin_path}}
+    - name: kubectl create -f {{ clusterrolebinding_system_kubelet_api_admin_path }}
     - onlyif:
       - sh -c '[ x$(kubectl get clusterrolebindings -o json | jq -e '"'"'.items[] | select(.metadata.name == "{{ clusterrolebinding_system_kubelet_api_admin }}") | has("kind")'"'"') = x'"'"''"'"' ]'
     - require:
       - pkg: jq
       - file: kubectl
       - file: {{ kube_admin_kubeconfig }}
-      - file: {{ clusterrolebinding_system_kubelet_api_admin_path }}
+    - require_in:
+      - cmd: {{ clusterrolebinding_system_kubelet_api_admin_path }}-delete
 
-{{ kubepkicertvalid(component, component_ssl_cert_path, kubernetes_ssl_cert_days_remaining) }}
+{{ clusterrolebinding_system_kubelet_api_admin_path }}-delete:
+  cmd.run:
+    - name: rm -f {{ clusterrolebinding_system_kubelet_api_admin_path }}
 
-{{ kubepkicert(component, component_ssl_cert_path, component_ssl_key_path, kubernetes_ca_cert_path, kubernetes_ca_key_path, 'serverAuth', kubernetes_ssl_cert_days_valid, kubernetes_ssl_cert_days_remaining, component_ssl_subject_CN, component_ssl_subject_O, component_ssl_subject_SAN) }}
+{{ valid_certificate(component, component_ssl_cert_path, kubernetes_ssl_cert_days_remaining) }}
 
-{{ kubepkikey(component, component_ssl_key_path) }}
+{{ certificate_private_key(component, component_ssl_key_path, 'ec', 256) }}
+
+{{ certificate(component, component_ssl_cert_path, component_ssl_key_path, 'kubernetes_ca', 'sha384', 'serverAuth', kubernetes_ssl_cert_days_valid, kubernetes_ssl_cert_days_remaining, component_ssl_subject_CN, component_ssl_subject_O, component_ssl_subject_SAN) }}

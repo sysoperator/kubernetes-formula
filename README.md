@@ -8,6 +8,7 @@ Kubernetes cluster deployment formula.
 - Vars and helpers:
   - [common](../../../salt-common)
   - [systemd](../../../salt-systemd)
+  - [ca](../../../ca-formula)
 
 - Core formulas:
   - [crictl](../../../crictl-formula)
@@ -20,7 +21,7 @@ Kubernetes cluster deployment formula.
 
 - Core
   - [kubernetes](https://github.com/kubernetes/kubernetes) v1.33.5
-  - [etcd](https://github.com/etcd-io/etcd) v3.5.23
+  - [etcd](https://github.com/etcd-io/etcd) v3.5.24
   - [containerd](https://containerd.io/) v1.7.24
   - [crictl](https://github.com/kubernetes-sigs/cri-tools) v1.33.0
 

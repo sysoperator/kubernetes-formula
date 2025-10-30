@@ -8,11 +8,9 @@
     package_flavor,
     apiserver_url,
     kubernetes_ssl_cert_days_valid, kubernetes_ssl_cert_days_remaining,
-    kubernetes_fullchain_ca_cert_path,
-    kubernetes_ca_cert_path, kubernetes_ca_key_path,
+    kubernetes_ca_cert_path,
     kubernetes_sa_key_path, kubernetes_sa_pub_path,
     kubernetes_ssl_dir,
-    kubernetes_x509_signers,
     component_ssl_cert_path, component_ssl_key_path,
     component_source, component_source_hash,
     component_kubeconfig
@@ -21,9 +19,11 @@ with context -%}
 {%- set component_ssl_subject_O  = 'system:' + component -%}
 {%- from tplroot ~ "/macros.jinja" import
     kubeconfig,
-    kubecomponentbinary,
-    kubepkicertvalid, kubepkicert, kubepkikey
+    kubecomponentbinary
 with context -%}
+{%- from "ca/macros.jinja" import
+    valid_certificate, certificate_private_key, certificate
+-%}
 
 include:
   - systemd/cmd
@@ -63,49 +63,15 @@ include:
     - name: {{ component }}
     - watch:
       - x509: {{ kubernetes_sa_key_path }}
-{%- if k8s.root_ca_cert %}
-      - file: {{ kubernetes_fullchain_ca_cert_path }}
-{%- endif %}
       - x509: {{ kubernetes_ca_cert_path }}
-{%- if k8s.x509_signers_enabled %}
-      - x509: {{ kubernetes_ca_key_path }}
-  {%- for signer in kubernetes_x509_signers %}
-      - x509: {{ kubernetes_ssl_dir }}/{{ signer['name'] }}-ca.crt
-      - x509: {{ kubernetes_ssl_dir }}/{{ signer['name'] }}-ca.key
-  {%- endfor %}
-{%- endif %}
       - x509: {{ component }}.crt
       - x509: {{ component }}.key
       - file: {{ component_kubeconfig }}
       - file: {{ component }}.service
       - file: {{ component }}
 
-{{ kubepkicertvalid(component, component_ssl_cert_path, kubernetes_ssl_cert_days_remaining) }}
+{{ valid_certificate(component, component_ssl_cert_path, kubernetes_ssl_cert_days_remaining) }}
 
-{{ kubepkicert(component, component_ssl_cert_path, component_ssl_key_path, kubernetes_ca_cert_path, kubernetes_ca_key_path, 'clientAuth', kubernetes_ssl_cert_days_valid, kubernetes_ssl_cert_days_remaining, component_ssl_subject_CN, component_ssl_subject_O) }}
+{{ certificate_private_key(component, component_ssl_key_path, 'ec', 256) }}
 
-{{ kubepkikey(component, component_ssl_key_path) }}
-
-{%- for signer in kubernetes_x509_signers %}
-{{ kubernetes_ssl_dir }}/{{ signer['name'] }}-ca.crt:
-  x509.pem_managed:
-    - mode: 644
-    - user: root
-    - group: root
-    - text: |
-        {{ signer['cert']|indent(8) }}
-    - require:
-      - file: {{ kubernetes_ssl_dir }}
-    - require_in:
-      - x509: {{ kubernetes_ssl_dir }}/{{ signer['name'] }}-ca.key
-
-{{ kubernetes_ssl_dir }}/{{ signer['name'] }}-ca.key:
-  x509.pem_managed:
-    - mode: 600
-    - user: root
-    - group: root
-    - text: |
-        {{ signer['key']|indent(8) }}
-    - require:
-      - file: {{ kubernetes_ssl_dir }}
-{%- endfor %}
+{{ certificate(component, component_ssl_cert_path, component_ssl_key_path, 'kubernetes_ca', 'sha384', 'clientAuth', kubernetes_ssl_cert_days_valid, kubernetes_ssl_cert_days_remaining, component_ssl_subject_CN, component_ssl_subject_O) }}

@@ -9,8 +9,7 @@
     apiserver_url, apiserver_healthz_url,
     kubelet_healthz_url,
     kubernetes_ssl_cert_days_valid, kubernetes_ssl_cert_days_remaining,
-    kubernetes_root_ca_file,
-    kubernetes_ca_cert_path, kubernetes_ca_key_path,
+    kubernetes_ca_cert_path,
     kube_admin_kubeconfig,
     component_ssl_cert_path, component_ssl_key_path,
     component_source, component_source_hash,
@@ -24,9 +23,11 @@ with context -%}
 {%- set component_ssl_subject_SAN = 'DNS:' + node_fqdn + ', DNS:' + node_host + ', IP:' + node_ip4 -%}
 {%- from tplroot ~ "/macros.jinja" import
     kubeconfig,
-    kubecomponentbinary,
-    kubepkicertvalid, kubepkicert, kubepkikey
+    kubecomponentbinary
 with context -%}
+{%- from "ca/macros.jinja" import
+    valid_certificate, certificate_private_key, certificate
+-%}
 {%- from "cni/vars.jinja" import
     cni_etc_dir
 -%}
@@ -122,7 +123,7 @@ include:
   cmd.run:
     - name: kubectl label node {{ node_host }} node-role.kubernetes.io/control-plane= node-role.kubernetes.io/{{ label_node_role }}= --overwrite=true
     - onlyif:
-      - curl --silent --output /dev/null --cacert {{ kubernetes_root_ca_file }} {{ apiserver_healthz_url }}
+      - curl --silent --output /dev/null {{ apiserver_healthz_url }}
       - kubectl get node {{ node_host }} -o json | jq -e '.metadata.labels | [has("node-role.kubernetes.io/control-plane"), has("node-role.kubernetes.io/{{ label_node_role }}")] | all | not'
     - require:
       - pkg: curl
@@ -131,8 +132,8 @@ include:
       - file: {{ kube_admin_kubeconfig }}
 {% endif %}
 
-{{ kubepkicertvalid(component, component_ssl_cert_path, kubernetes_ssl_cert_days_remaining) }}
+{{ valid_certificate(component, component_ssl_cert_path, kubernetes_ssl_cert_days_remaining) }}
 
-{{ kubepkicert(component, component_ssl_cert_path, component_ssl_key_path, kubernetes_ca_cert_path, kubernetes_ca_key_path, 'serverAuth, clientAuth', kubernetes_ssl_cert_days_valid, kubernetes_ssl_cert_days_remaining, component_ssl_subject_CN, component_ssl_subject_O, component_ssl_subject_SAN) }}
+{{ certificate_private_key(component, component_ssl_key_path, 'ec', 256) }}
 
-{{ kubepkikey(component, component_ssl_key_path) }}
+{{ certificate(component, component_ssl_cert_path, component_ssl_key_path, 'kubernetes_ca', 'sha384', 'serverAuth, clientAuth', kubernetes_ssl_cert_days_valid, kubernetes_ssl_cert_days_remaining, component_ssl_subject_CN, component_ssl_subject_O, component_ssl_subject_SAN) }}

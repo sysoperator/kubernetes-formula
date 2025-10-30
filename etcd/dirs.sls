@@ -4,10 +4,8 @@
     etcd_ssl_dir
 with context -%}
 
-{%- if etcd.cluster.ca_cert != '' %}
 include:
   - kubernetes/dirs
-{%- endif %}
 
 {{ etcd_ssl_dir }}:
   file.directory:

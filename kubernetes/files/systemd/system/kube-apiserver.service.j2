@@ -14,7 +14,7 @@
     front_proxy_ca_cert_path, front_proxy_client_ssl_cert_path, front_proxy_client_ssl_key_path,
     component_ssl_cert_path, component_ssl_key_path,
     etcd_ca_cert_path,
-    etcd_ssl_cert_path, etcd_ssl_key_path
+    apiserver_etcd_client_ssl_cert_path, apiserver_etcd_client_ssl_key_path
 with context -%}
 {%- from "common/vars.jinja" import
     node_ip4
@@ -68,8 +68,8 @@ ExecStart={{ component_bin_path }} \
         https://{{ addrs[0] }}:2379{% if not loop.last %},{% endif %}
   {%- endfor %} \
     --etcd-cafile={{ etcd_ca_cert_path }} \
-    --etcd-certfile={{ etcd_ssl_cert_path }} \
-    --etcd-keyfile={{ etcd_ssl_key_path }} \
+    --etcd-certfile={{ apiserver_etcd_client_ssl_cert_path }} \
+    --etcd-keyfile={{ apiserver_etcd_client_ssl_key_path }} \
 {%- if kubernetes_runtime_config|length > 0 %}
     --runtime-config={% for resource in kubernetes_runtime_config -%}
         {{ resource }}{% if not loop.last %},{% endif %}

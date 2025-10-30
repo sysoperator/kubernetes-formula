@@ -61,8 +61,6 @@
 {%- set kubernetes_runtime_config = k8s.runtime_config if k8s.runtime_config is not none else {} -%}
 {%- set kubernetes_feature_gates = k8s.feature_gates if k8s.feature_gates is not none else {} -%}
 {%- set kubernetes_admission_controllers = k8s.admission_controllers if k8s.admission_controllers is not none else {} -%}
-{%- set kubernetes_x509_signers = k8s.x509_signers if k8s.x509_signers is not none else [] -%}
-{%- set kubernetes_x509_signers_duration = k8s.x509_signers_duration if k8s.x509_signers_duration is not none else '720h' -%}
 
 {%- set kubernetes_etc_dir = k8s.etc_dir -%}
 {%- set kubernetes_ssl_dir = kubernetes_etc_dir + k8s.ssl_dir -%}
@@ -72,10 +70,9 @@
 {%- set kubernetes_ssl_cert_days_remaining = k8s.ssl_cert_days_remaining if k8s.ssl_cert_days_remaining else 30 -%}
 {%- set kubernetes_fullchain_ca_cert_path = kubernetes_ssl_dir + '/fullchain.crt' -%}
 {%- set kubernetes_ca_cert_path = kubernetes_ssl_dir + '/ca.crt' -%}
-{%- set kubernetes_ca_key_path = kubernetes_ssl_dir + '/ca.key' -%}
 {%- set kubernetes_sa_key_path = kubernetes_ssl_dir + '/sa.key' -%}
 {%- set kubernetes_sa_pub_path = kubernetes_ssl_dir + '/sa.pub' -%}
-{%- set kubernetes_root_ca_file = kubernetes_fullchain_ca_cert_path if k8s.root_ca_cert else kubernetes_ca_cert_path %}
+{%- set kubernetes_root_ca_file = kubernetes_fullchain_ca_cert_path -%}
 
 {%- set kubelet_healthz_host = '127.0.0.1' -%}
 {%- set kubelet_healthz_port = 10248|string -%}
@@ -83,6 +80,11 @@
 {%- set kubelet_healthz_url = kubernetes_insecure_scheme + kubelet_healthz_hostport + '/healthz' -%}
 
 {%- set kubelet_cgroup_driver = k8s.kubelet.get('cgroup_driver') if k8s.kubelet.get('cgroup_driver')|default('') != 'None' else '' -%}
+
+{%- set apiserver_etcd_client_ssl_cert_path = kubernetes_ssl_dir + '/apiserver-etcd-client.crt' -%}
+{%- set apiserver_etcd_client_ssl_key_path = kubernetes_ssl_dir + '/apiserver-etcd-client.key' -%}
+{%- set apiserver_etcd_client_ssl_subject_CN = 'kube-apiserver-etcd-client' -%}
+{%- set apiserver_etcd_client_ssl_subject_O = None -%}
 
 {%- set kubelet_client_ssl_cert_path = kubernetes_ssl_dir + '/apiserver-kubelet-client.crt' -%}
 {%- set kubelet_client_ssl_key_path = kubernetes_ssl_dir + '/apiserver-kubelet-client.key' -%}
@@ -96,8 +98,7 @@
 {%- set kube_admin_ssl_subject_CN = 'kube-admin' -%}
 {%- set kube_admin_ssl_subject_O = 'system:masters' -%}
 
-{%- set front_proxy_ca_cert_path = kubernetes_ssl_dir + '/' + ('front-proxy-' if k8s.front_proxy_ca_cert else '') + 'ca.crt' -%}
-{%- set front_proxy_ca_key_path  = kubernetes_ssl_dir + '/' + ('front-proxy-' if k8s.front_proxy_ca_key  else '') + 'ca.key' -%}
+{%- set front_proxy_ca_cert_path = kubernetes_ssl_dir + '/' + 'front-proxy-ca.crt' -%}
 {%- set front_proxy_client_ssl_cert_path = kubernetes_ssl_dir + '/front-proxy-client.crt' -%}
 {%- set front_proxy_client_ssl_key_path = kubernetes_ssl_dir + '/front-proxy-client.key' -%}
 {%- set front_proxy_client_ssl_subject_CN = 'front-proxy-client' -%}
@@ -111,14 +112,17 @@
 {%- set component_kubeconfig = component_kubeconfig|replace('kube-', '') -%}
 
 {%- set clusterrolebinding_system_kubelet_api_admin = 'system:kubelet-api-admin' -%}
-{%- set clusterrolebinding_system_kubelet_api_admin_path = kubernetes_manifests_dir + '/' + clusterrolebinding_system_kubelet_api_admin + '.yaml' -%}
+{%- set clusterrolebinding_system_kubelet_api_admin_path = '/tmp/' + clusterrolebinding_system_kubelet_api_admin + '.yaml' -%}
 
 {%- set unbound_log_file = "/var/log/unbound/unbound.log" -%}
 {%- set unbound_log_verbosity = 1 -%}
 
 {%- set etcd_ssl_dir = etcd.ssl_dir -%}
 
-{%- set etcd_ca_cert_path = etcd_ssl_dir + '/ca.crt' if etcd.cluster.ca_cert else kubernetes_ca_cert_path -%}
+{%- set etcd_ca_cert_path = etcd_ssl_dir + '/ca.crt' -%}
+{%- set etcd_ssl_cert_path = etcd_ssl_dir + '/server.crt' -%}
+{%- set etcd_ssl_key_path  = etcd_ssl_dir + '/server.key' -%}
 
-{%- set etcd_ssl_cert_path = etcd_ssl_dir + '/etcd.crt' -%}
-{%- set etcd_ssl_key_path  = etcd_ssl_dir + '/etcd.key' -%}
+{%- set etcd_peer_ca_cert_path = etcd_ssl_dir + '/peer-ca.crt' -%}
+{%- set etcd_peer_ssl_cert_path = etcd_ssl_dir + '/peer.crt' -%}
+{%- set etcd_peer_ssl_key_path  = etcd_ssl_dir + '/peer.key' -%}

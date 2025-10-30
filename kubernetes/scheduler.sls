@@ -7,7 +7,7 @@
     package_flavor,
     apiserver_url,
     kubernetes_ssl_cert_days_valid, kubernetes_ssl_cert_days_remaining,
-    kubernetes_ca_cert_path, kubernetes_ca_key_path,
+    kubernetes_ca_cert_path,
     component_ssl_cert_path, component_ssl_key_path,
     component_source, component_source_hash,
     component_kubeconfig
@@ -16,9 +16,11 @@ with context -%}
 {%- set component_ssl_subject_O  = 'system:' + component -%}
 {%- from tplroot ~ "/macros.jinja" import
     kubeconfig,
-    kubecomponentbinary,
-    kubepkicertvalid, kubepkicert, kubepkikey
+    kubecomponentbinary
 with context -%}
+{%- from "ca/macros.jinja" import
+    valid_certificate, certificate_private_key, certificate
+-%}
 
 include:
   - systemd/cmd
@@ -62,8 +64,8 @@ include:
       - file: {{ component }}.service
       - file: {{ component }}
 
-{{ kubepkicertvalid(component, component_ssl_cert_path, kubernetes_ssl_cert_days_remaining) }}
+{{ valid_certificate(component, component_ssl_cert_path, kubernetes_ssl_cert_days_remaining) }}
 
-{{ kubepkicert(component, component_ssl_cert_path, component_ssl_key_path, kubernetes_ca_cert_path, kubernetes_ca_key_path, 'clientAuth', kubernetes_ssl_cert_days_valid, kubernetes_ssl_cert_days_remaining, component_ssl_subject_CN, component_ssl_subject_O) }}
+{{ certificate_private_key(component, component_ssl_key_path, 'ec', 256) }}
 
-{{ kubepkikey(component, component_ssl_key_path) }}
+{{ certificate(component, component_ssl_cert_path, component_ssl_key_path, 'kubernetes_ca', 'sha384', 'clientAuth', kubernetes_ssl_cert_days_valid, kubernetes_ssl_cert_days_remaining, component_ssl_subject_CN, component_ssl_subject_O) }}
