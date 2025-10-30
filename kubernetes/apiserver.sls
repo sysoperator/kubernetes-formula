@@ -96,7 +96,7 @@ include:
 
 {{ clusterrolebinding_system_kubelet_api_admin_path }}:
   file.managed:
-    - source: salt://{{ tplroot }}/files/kubernetes/manifests/{{ clusterrolebinding_system_kubelet_api_admin }}.yaml
+    - source: salt://{{ tplroot }}/files/kubernetes/clusterroles/{{ clusterrolebinding_system_kubelet_api_admin }}.yaml
     - require_in:
       - cmd: {{ clusterrolebinding_system_kubelet_api_admin }}
   
