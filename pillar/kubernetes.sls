@@ -2,7 +2,7 @@
 kubernetes:
   lookup:
     source_url: https://storage.googleapis.com/kubernetes-release/release
-    source_version: v1.34.1
+    source_version: v1.34.2
     install_dir: /usr/local/bin
     k8s:
       etc_dir: /etc/kubernetes

@@ -20,8 +20,8 @@ Kubernetes cluster deployment formula.
 ## Components
 
 - Core
-  - [kubernetes](https://github.com/kubernetes/kubernetes) v1.34.1
-  - [etcd](https://github.com/etcd-io/etcd) v3.5.24
+  - [kubernetes](https://github.com/kubernetes/kubernetes) v1.34.2
+  - [etcd](https://github.com/etcd-io/etcd) v3.5.25
   - [containerd](https://containerd.io/) v1.7.28
   - [crictl](https://github.com/kubernetes-sigs/cri-tools) v1.34.0
 
