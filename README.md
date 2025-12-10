@@ -13,6 +13,7 @@ Kubernetes cluster deployment formula.
 - Core formulas:
   - [crictl](../../../crictl-formula)
   - [containerd](../../../containerd-formula)
+  - [cri-o](../../../cri-o-formula)
   - [debian](../../../debian-formula)
   - [sysctl](../../../sysctl-formula)
   - [docker.repository](../../../docker-formula/blob/master/docker/repository.sls)
@@ -28,6 +29,9 @@ Kubernetes cluster deployment formula.
 - Network Plugin
   - [cni-plugins](https://github.com/containernetworking/plugins) v1.8.0
   - [flannel](https://github.com/flannel-io/flannel) v0.27.4
+
+- Experimental
+  - [cri-o](https://github.com/cri-o/cri-o) v1.34.2
 
 ## Pre-requisities
 
