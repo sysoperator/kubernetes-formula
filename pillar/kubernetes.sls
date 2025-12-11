@@ -25,6 +25,8 @@ kubernetes:
         # Use the container runtime default if empty
         # Possible values are: 'cgroupfs', 'systemd' (default: cgroupfs)
         cgroup_driver: systemd
+        # Default: unix:///run/containerd/containerd.sock
+        container_runtime_endpoint:
       cluster_dns:
         override_host_resolvconf: False
         nameservers:

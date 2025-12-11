@@ -6,6 +6,7 @@
     cluster_dns_cluster_domain, cluster_dns_nameservers,
     node_role,
     kubelet_cgroup_driver,
+    kubelet_container_runtime_endpoint,
     kubernetes_feature_gates,
     kubernetes_ca_cert_path,
     component_ssl_cert_path, component_ssl_key_path,
@@ -47,7 +48,7 @@ ExecStart={{ component_bin_path }} \
 {%- if salt['pkg.version_cmp'](kubernetes.source_version, 'v1.24.0') < 0 %}
     --container-runtime=docker \
 {%- else %}
-    --container-runtime-endpoint=unix:///run/containerd/containerd.sock \
+    --container-runtime-endpoint={{ kubelet_container_runtime_endpoint }} \
 {%- endif %}
 {%- if node_role == 'master' %}
     --node-labels="type=controller" \

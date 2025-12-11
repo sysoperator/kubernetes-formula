@@ -2,7 +2,8 @@
 {%- from tplroot ~ "/map.jinja" import cni with context -%}
 {%- from tplroot ~ "/vars.jinja" import
     package_source, package_source_hash,
-    cni_etc_dir, cni_plugins_dir
+    cni_etc_dir, cni_plugins_dir,
+    cni_network_name
 with context -%}
 
 {% set cni_installed_version = salt['cmd.shell']('test -d /opt/cni/bin && /opt/cni/bin/dummy 2>&1 | grep -m 1 -o '"'"'[^ ]*$'"'"'') %}
@@ -12,7 +13,7 @@ include:
   - debian/packages/bridge-utils
   - .dirs
 
-{{ cni_etc_dir }}/10-bridge.conf:
+{{ cni_etc_dir }}/10-{{ cni_network_name }}.conf:
   file.managed:
     - source: salt://{{ tplroot }}/files/cni/net.d/10-bridge.conf.j2
     - template: jinja

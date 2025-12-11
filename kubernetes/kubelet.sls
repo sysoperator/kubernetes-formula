@@ -7,7 +7,7 @@
     node_role,
     package_flavor,
     apiserver_url, apiserver_healthz_url,
-    kubelet_healthz_url,
+    kubelet_healthz_url, kubelet_container_runtime,
     kubernetes_ssl_cert_days_valid, kubernetes_ssl_cert_days_remaining,
     kubernetes_ca_cert_path,
     kube_admin_kubeconfig,
@@ -29,17 +29,17 @@ with context -%}
     valid_certificate, certificate_private_key, certificate
 -%}
 {%- from "cni/vars.jinja" import
-    cni_etc_dir
+    cni_etc_dir, cni_network_name
 -%}
 
 include:
   - debian/packages/curl
   - debian/packages/jq
   - systemd/cmd
-{%- if salt['pkg.version_cmp'](kubernetes.source_version, 'v1.24.0') < 0 %}
   - cni
-{%- else %}
-  - containerd
+{%- if salt['pkg.version_cmp'](kubernetes.source_version, 'v1.24.0') >= 0 %}
+  - crictl.install
+  - {{ kubelet_container_runtime[0] }}
 {%- endif %}
   - .cmd
 {% if node_role == 'node' %}
@@ -59,9 +59,7 @@ include:
     - require:
       - x509: {{ kubernetes_ca_cert_path }}
       - x509: {{ component }}.crt
-{%- if salt['pkg.version_cmp'](kubernetes.source_version, 'v1.24.0') < 0 %}
-      - file: {{ cni_etc_dir }}/10-bridge.conf
-{%- endif %}
+      - file: {{ cni_etc_dir }}/10-{{ cni_network_name }}.conf
     - require_in:
       - service: {{ component }}.service-enabled
     - watch_in:
