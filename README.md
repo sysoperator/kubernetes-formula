@@ -31,7 +31,7 @@ Kubernetes cluster deployment formula.
   - [flannel](https://github.com/flannel-io/flannel) v0.27.4
 
 - Experimental
-  - [cri-o](https://github.com/cri-o/cri-o) v1.34.2
+  - [cri-o](https://github.com/cri-o/cri-o) v1.34.3
 
 ## Pre-requisities
 
