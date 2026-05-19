@@ -1,7 +1,7 @@
 etcd:
   lookup:
     source_url: https://github.com/etcd-io/etcd/releases/download
-    source_version: v3.5.25
+    source_version: v3.5.30
     install_dir: /usr/local/bin
     ssl_dir: /etc/kubernetes/pki/etcd
     data_dir: /var/local/etcd
