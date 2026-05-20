@@ -33,6 +33,19 @@ Kubernetes cluster deployment formula.
 - Experimental
   - [cri-o](https://github.com/cri-o/cri-o) latest v1.35.x
 
+## Versioning
+
+The Salt Formula version matrix represents the versions of formula which are supporting a Kubernetes release.
+
+| Formula Version | Kubernetes Version     |
+|-----------------|------------------------|
+| 1.0             | v1.30.8                |
+| 1.1             | v1.30.8                |
+| 2.0             | v1.33.5                |
+| 2.1             | v1.34.1+ up to v1.34.3 |
+| 2.2             | v1.34.8                |
+| 2.3             | v1.35.5                |
+
 ## Pre-requisities
 
 ### Roles
@@ -43,7 +56,7 @@ Target minion should have the following grains configured:
 kubernetes:
   clustername: local
 roles:
-- kube-master
+- kube-master # or kube-node
 - kube-cluster-member
 ```
 
