@@ -1,7 +1,7 @@
 #!yaml|gpg
 kubernetes:
   lookup:
-    source_url: https://storage.googleapis.com/kubernetes-release/release
+    source_url: https://dl.k8s.io
     source_version: v1.35.5
     install_dir: /usr/local/bin
     k8s:
