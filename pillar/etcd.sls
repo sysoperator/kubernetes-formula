@@ -6,5 +6,5 @@ etcd:
     ssl_dir: /etc/kubernetes/pki/etcd
     data_dir: /var/local/etcd
     cluster:
-      name: etcd-cluster
       initial_cluster: True
+      initial_cluster_token: k8s-etcd-cluster
