@@ -43,7 +43,7 @@ ExecStart={{ etcd_bin_path }} \
     --initial-cluster-state new \
     --initial-cluster-token {{ etcd.cluster.initial_cluster_token|default('etcd-cluster') }} \
     --initial-cluster {% for server, addrs in salt['mine.get']('roles:kube-master', 'kube_master_ip_addrs', tgt_type='grain')|dictsort() -%}
-        {{ server.split('.')[0] }}=https://{{ addrs[0] }}:2380{% if not loop.last %},{% endif %}
+        {{ server.split('.')[0]|lower }}=https://{{ addrs[0] }}:2380{% if not loop.last %},{% endif %}
   {%- endfor %} \
     --initial-advertise-peer-urls https://{{ node_ip4 }}:2380
 Restart=on-failure
