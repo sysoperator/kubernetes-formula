@@ -172,7 +172,7 @@ ifup kube0
 3. Populate the Salt Mine with data:
 
 ```shell
-salt -N kubernetes saltutil.refresh_all
+salt -N kubernetes saltutil.sync_all # Also refresh everything
 salt -N kubernetes mine.update
 ```
 
