@@ -41,7 +41,7 @@ ExecStart={{ etcd_bin_path }} \
     --peer-cert-file {{ etcd_peer_ssl_cert_path }} \
     --peer-key-file {{ etcd_peer_ssl_key_path }} \
     --initial-cluster-state new \
-    --initial-cluster-token {{ etcd.initial_cluster_token|default('etcd-cluster') }} \
+    --initial-cluster-token {{ etcd.cluster.initial_cluster_token|default('etcd-cluster') }} \
     --initial-cluster {% for server, addrs in salt['mine.get']('roles:kube-master', 'kube_master_ip_addrs', tgt_type='grain')|dictsort() -%}
         {{ server.split('.')[0] }}=https://{{ addrs[0] }}:2380{% if not loop.last %},{% endif %}
   {%- endfor %} \
